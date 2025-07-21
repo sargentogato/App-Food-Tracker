@@ -1,0 +1,54 @@
+{
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "tsconfig.json": "tsconfig.*.json, env.d.ts",
+    "vite.config.*": "jsconfig*, vitest.config.*, cypress.config.*, playwright.config.*",
+    "package.json": "package-lock.json, pnpm*, .yarnrc*, yarn*, .eslint*, eslint*, .oxlint*, oxlint*, .prettier*, prettier*, .editorconfig"
+  },
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.fixAll.eslint": "explicit"
+  },
+  "editor.formatOnSave": false,
+  "peacock.color": "#E67E22",
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[scss]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "workbench.colorCustomizations": {
+    "activityBar.activeBackground": "#eb9950",
+    "activityBar.background": "#eb9950",
+    "activityBar.foreground": "#15202b",
+    "activityBar.inactiveForeground": "#15202b99",
+    "activityBarBadge.background": "#e2fcee",
+    "activityBarBadge.foreground": "#15202b",
+    "commandCenter.border": "#15202b99",
+    "sash.hoverBorder": "#eb9950",
+    "statusBar.background": "#e67e22",
+    "statusBar.border": "#e67e22",
+    "statusBar.debuggingBackground": "#228ae6",
+    "statusBar.debuggingBorder": "#228ae6",
+    "statusBar.debuggingForeground": "#e7e7e7",
+    "statusBar.foreground": "#15202b",
+    "statusBarItem.hoverBackground": "#bf6516",
+    "statusBarItem.remoteBackground": "#e67e22",
+    "statusBarItem.remoteForeground": "#15202b",
+    "tab.activeBorder": "#eb9950",
+    "titleBar.activeBackground": "#e67e22",
+    "titleBar.activeForeground": "#15202b",
+    "titleBar.border": "#e67e22",
+    "titleBar.inactiveBackground": "#e67e2299",
+    "titleBar.inactiveForeground": "#15202b99"
+  },
+}
