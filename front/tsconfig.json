@@ -3,5 +3,12 @@
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }
-  ]
+  ],
+  "compilerOptions": {
+    "baseUrl": "./",
+    "target": "es5",
+    "lib": ["esnext", "dom"],
+    "types": ["cypress", "cypress-axe"]
+  },
+  "include": ["."]
 }
