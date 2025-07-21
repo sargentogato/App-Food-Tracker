@@ -7,8 +7,6 @@
   "compilerOptions": {
     "composite": true,
     "baseUrl": "./",
-    "target": "es5",
-    "lib": ["esnext", "dom"],
     "types": ["cypress", "cypress-axe"]
   },
   "include": ["."]
