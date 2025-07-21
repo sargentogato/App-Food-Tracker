@@ -5,6 +5,7 @@
     { "path": "./tsconfig.node.json" }
   ],
   "compilerOptions": {
+    "composite": true,
     "baseUrl": "./",
     "target": "es5",
     "lib": ["esnext", "dom"],
