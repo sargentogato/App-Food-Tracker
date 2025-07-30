@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -11,17 +11,21 @@ export class ProductService {
     @InjectModel(Product.name) private productModel: Model<Product>,
   ) {}
 
-  create(createProductDto: CreateProductDto) {
+  async create(createProductDto: CreateProductDto) {
     const createdProduct = new this.productModel(createProductDto);
-    return createdProduct.save();
+    return await createdProduct.save();
   }
 
-  findAll() {
-    return this.productModel.find().exec();
+  async findAll() {
+    return await this.productModel.find().exec();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} product`;
+  async findOne(id: string) {
+    const foundProduct = await this.productModel.findById(id);
+    if (!foundProduct){
+      throw new HttpException('producto not found', 404);
+    }
+    return foundProduct;
   }
 
   update(id: number, updateProductDto: UpdateProductDto) {
