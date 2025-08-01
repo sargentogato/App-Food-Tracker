@@ -19,7 +19,7 @@ import { User } from './user/entities/user.entity';
       host: 'localhost', //cambiar por ip
       port: 3306,
       username: 'root',
-      password: 'root',
+      password: process.env.MYSQL_PASSWORD!,
       database: 'app-food-tracker',
       entities: [User],
       synchronize: true, //eliminar para produccion
