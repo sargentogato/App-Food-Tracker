@@ -7,9 +7,7 @@ import { Model } from 'mongoose';
 
 @Injectable()
 export class ProductService {
-  constructor(
-    @InjectModel(Product.name) private productModel: Model<Product>,
-  ) {}
+  constructor(@InjectModel(Product.name) private productModel: Model<Product>) {}
 
   async create(createProductDto: CreateProductDto) {
     const createdProduct = new this.productModel(createProductDto);
@@ -22,7 +20,7 @@ export class ProductService {
 
   async findOne(id: string) {
     const foundProduct = await this.productModel.findById(id);
-    if (!foundProduct){
+    if (!foundProduct) {
       throw new HttpException('producto not found', 404);
     }
     return foundProduct;
