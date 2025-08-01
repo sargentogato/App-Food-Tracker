@@ -1,0 +1,9 @@
+# Indica que es el archivo principal
+root = true
+
+# Reglas globales para todos los archivos
+[*]
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
