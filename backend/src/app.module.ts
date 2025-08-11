@@ -16,11 +16,11 @@ import { User } from './user/entities/user.entity';
     ProductModule,
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: 'localhost', //cambiar por ip
+      host: process.env.MYSQL_HOST,
       port: 3306,
-      username: 'root',
+      username: process.env.MYSQL_USER,
       password: process.env.MYSQL_PASSWORD!,
-      database: 'app-food-tracker',
+      database: process.env.MYSQL_DATABASE!,
       entities: [User],
       synchronize: true, //eliminar para produccion
       autoLoadEntities: true,
