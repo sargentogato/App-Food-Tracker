@@ -1,25 +1,28 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity({ name: 'users' })
-export class User {
+@Entity({ name: 'items' })
+export class Item {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column({ nullable: false })
-  username: string;
+  name: string;
 
-  @Column({ nullable: false })
-  full_name: string;
+  @Column({ default: '' })
+  description: string;
 
-  @Column({ nullable: false, unique: true })
-  email: string;
-
-  @Column({ name: 'role', type: 'enum', enum: ['user', 'admin', 'superadmin'], default: 'user' })
-  role: string;
+  @Column({ default: '' })
+  category: string;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   updated_at: Date;
+
+  @Column({ nullable: false })
+  created_by: number;
+
+  @Column({ nullable: false })
+  updated_by: number;
 }

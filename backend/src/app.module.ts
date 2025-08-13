@@ -7,6 +7,7 @@ import { DataSource } from 'typeorm';
 import { UserModule } from './user/user.module';
 import { User } from './user/entities/user.entity';
 import { ItemsModule } from './items/items.module';
+import { Item } from './items/entities/item.entity';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { ItemsModule } from './items/items.module';
       username: process.env.MYSQL_USER,
       password: process.env.MYSQL_PASSWORD!,
       database: process.env.MYSQL_DATABASE!,
-      entities: [User],
+      entities: [User, Item],
       synchronize: true, //eliminar para produccion
       autoLoadEntities: true,
     }),
