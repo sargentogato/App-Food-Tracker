@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity()
+@Entity({ name: 'items' })
 export class Item {
   @PrimaryGeneratedColumn()
   id: number;
@@ -8,10 +8,10 @@ export class Item {
   @Column({ nullable: false })
   name: string;
 
-  @Column()
+  @Column({ default: '' })
   description: string;
 
-  @Column()
+  @Column({ default: '' })
   category: string;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
