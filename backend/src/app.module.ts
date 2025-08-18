@@ -8,6 +8,7 @@ import { UserModule } from './user/user.module';
 import { User } from './user/entities/user.entity';
 import { ItemsModule } from './items/items.module';
 import { Item } from './items/entities/item.entity';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { Item } from './items/entities/item.entity';
     }),
     UserModule,
     ItemsModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

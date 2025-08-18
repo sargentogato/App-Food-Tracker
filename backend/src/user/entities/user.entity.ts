@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'users' })
 export class User {
@@ -16,6 +16,9 @@ export class User {
 
   @Column({ name: 'role', type: 'enum', enum: ['user', 'admin', 'superadmin'], default: 'user' })
   role: string;
+
+  @Column({ nullable: false })
+  password: string;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
