@@ -1,0 +1,29 @@
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { UserService } from '../user/user.service';
+
+@Injectable()
+export class AuthService {
+  constructor(
+    private userService: UserService,
+    private jwtService: JwtService,
+  ) {}
+
+  async signIn(username: string, pass: string, res): Promise<{ access_token: string }> {
+    const user = await this.userService.findOneByUser(username);
+
+    if (user?.password !== pass) {
+      throw new UnauthorizedException();
+    }
+    const payload = { sub: user.id, username: user.username, role: user.role };
+
+    const access_token = await this.jwtService.signAsync(payload);
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    res.cookie('jwt', access_token, { httpOnly: true });
+
+    return {
+      access_token,
+    };
+  }
+}
