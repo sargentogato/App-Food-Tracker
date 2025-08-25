@@ -6,6 +6,8 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { Role } from './enums/role.enum';
 import { UserService } from './user.service';
 
+const RolesUSers = [Role.User, Role.SuperAdmin, Role.Admin];
+
 @Controller('user')
 @UseGuards(RolesGuard)
 export class UserController {
@@ -18,21 +20,25 @@ export class UserController {
   }
 
   @Get()
+  @Roles(Role.SuperAdmin)
   findAll() {
     return this.userService.findAll();
   }
 
   @Get(':id')
+  @Roles(...RolesUSers)
   findOne(@Param('id') id: string) {
     return this.userService.findOne(+id);
   }
 
   @Patch(':id')
+  @Roles(...RolesUSers)
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.userService.update(+id, updateUserDto);
   }
 
   @Delete(':id')
+  @Roles(Role.SuperAdmin)
   remove(@Param('id') id: string) {
     return this.userService.remove(+id);
   }

@@ -15,10 +15,7 @@ export class AuthService {
     if (user?.password !== pass) {
       throw new UnauthorizedException();
     }
-    const { password, ...result } = user;
-    // TODO: Generate a JWT and return it here
-    // instead of the user object
-    const payload = { sub: result.id, username: result.username, role: result.role };
+    const payload = { sub: user.id, username: user.username, role: user.role };
 
     return {
       access_token: await this.jwtService.signAsync(payload),
