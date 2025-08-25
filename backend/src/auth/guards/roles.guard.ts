@@ -24,10 +24,11 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
-    const { headers } = context.switchToHttp().getRequest<Request>();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const { headers, cookies } = context.switchToHttp().getRequest<Request>();
     const authHeader = headers.authorization;
 
-    console.log(authHeader);
+    console.log(cookies?.jwt);
 
     if (!authHeader || !authHeader.startsWith('Bearer')) {
       return false;
@@ -36,10 +37,10 @@ export class RolesGuard implements CanActivate {
     const token = authHeader.split(' ')[1];
 
     const currentUser = this.validateToken(token);
-    console.log(currentUser);
+    //console.log(currentUser);
 
     // validate token
-    console.log(requiredRoles);
+    //console.log(requiredRoles);
 
     return requiredRoles.includes((currentUser as Partial<User>)?.role as Role);
   }
