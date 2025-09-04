@@ -2,7 +2,6 @@ import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
-import { User } from 'src/user/entities/user.entity';
 import { Role } from '../../user/enums/role.enum';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 import { validateToken } from 'src/utils/jwt';
@@ -24,18 +23,21 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const { cookies } = context.switchToHttp().getRequest<Request>();
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (!cookies?.jwt) {
       return false;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
     const currentUser = validateToken(cookies.jwt, this.config);
     //console.log(currentUser);
 
     // validate token
     //console.log(requiredRoles);
 
-    return requiredRoles.includes((currentUser as Partial<User>)?.role as Role);
+    return requiredRoles.includes(currentUser?.role as Role);
   }
 }

@@ -15,6 +15,9 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Role } from './enums/role.enum';
 import { UserService } from './user.service';
+import { Request as ExpressRequest } from 'express';
+import { validateToken } from 'src/utils/jwt';
+import { ConfigService } from '@nestjs/config';
 
 const RolesUSers = [Role.User, Role.SuperAdmin, Role.Admin];
 
@@ -43,9 +46,25 @@ export class UserController {
 
   @Patch(':id')
   @Roles(...RolesUSers)
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto, @Request() req) {
-    console.log(req);
-    return this.userService.update(+id, updateUserDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+    @Request() req: ExpressRequest,
+  ) {
+    const cookies = req.cookies;
+    if (!cookies.jwt) {
+      return null;
+    }
+    const currentUser = validateToken(cookies.jwt as string, new ConfigService());
+    if (!currentUser) {
+      return null;
+    }
+
+    if (currentUser.role === Role.SuperAdmin || currentUser.id === +id) {
+      return this.userService.update(+id, updateUserDto);
+    }
+
+    return null;
   }
 
   @Delete(':id')
