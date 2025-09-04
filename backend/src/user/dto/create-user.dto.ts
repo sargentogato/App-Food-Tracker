@@ -14,4 +14,7 @@ export class CreateUserDto {
   @IsEnum(['user', 'admin', 'superadmin'])
   @IsOptional()
   role?: string;
+
+  @IsString()
+  password: string;
 }

@@ -8,7 +8,7 @@ export class AuthController {
 
   @Post('signin')
   async signin(@Body() signInDto: SignInDto, @Response({ passthrough: true }) res) {
-    const { access_token } = await this.authService.signIn(signInDto.username, signInDto.password, res);
+    await this.authService.signIn(signInDto.username, signInDto.password, res);
 
     return {
       loggedIn: true,

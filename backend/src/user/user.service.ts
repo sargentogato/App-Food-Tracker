@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -12,8 +13,11 @@ export class UserService {
     private usersRepository: Repository<User>,
   ) {}
 
-  create(createUserDto: CreateUserDto): Promise<User> {
-    return this.usersRepository.save(createUserDto);
+  async create(createUserDto: CreateUserDto): Promise<Partial<User>> {
+    createUserDto.password = await bcrypt.hash(createUserDto.password, 10);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...createdUser } = await this.usersRepository.save(createUserDto);
+    return createdUser;
   }
 
   findAll(): Promise<User[]> {
