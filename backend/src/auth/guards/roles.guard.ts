@@ -23,15 +23,13 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const { cookies } = context.switchToHttp().getRequest<Request>();
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (!cookies?.jwt) {
       return false;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const currentUser = validateToken(cookies.jwt, this.config);
     //console.log(currentUser);
 
