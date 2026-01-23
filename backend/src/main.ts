@@ -11,8 +11,8 @@ async function bootstrap() {
   app.use(cookieParser());
 
   const config = new DocumentBuilder()
-    .setTitle('Mi API con NestJS')
-    .setDescription('Descripción de mi servicio')
+    .setTitle('Food Tracker API')
+    .setDescription('The Food Tracker API documentation')
     .setVersion('1.0')
     .build();
 
