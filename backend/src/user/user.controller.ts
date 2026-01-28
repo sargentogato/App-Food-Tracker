@@ -13,14 +13,27 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { User } from './entities/user.entity';
 import { Role } from './enums/role.enum';
 import { UserService } from './user.service';
 import { Request as ExpressRequest } from 'express';
 import { validateToken } from 'src/utils/jwt';
 import { ConfigService } from '@nestjs/config';
+import {
+  ApiBadRequestResponse,
+  ApiBody,
+  ApiInternalServerErrorResponse,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiSecurity,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 
 const RolesUSers = [Role.User, Role.SuperAdmin, Role.Admin];
 
+@ApiTags('user')
 @Controller('user')
 @UseGuards(RolesGuard)
 export class UserController {
@@ -28,24 +41,148 @@ export class UserController {
 
   @Post()
   @Roles(Role.SuperAdmin)
+  @ApiOperation({ summary: 'Create a new user', description: 'Create a new user' })
+  @ApiBody({ type: CreateUserDto })
+  @ApiSecurity('jwt')
+  @ApiResponse({ status: 201, description: 'User created successfully', type: User })
+  @ApiBadRequestResponse({
+    description: 'Bad Request',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: 'Bad Request',
+        error: 'Bad Request',
+      },
+    },
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+    schema: {
+      example: {
+        statusCode: 401,
+        message: 'Unauthorized',
+        error: 'Unauthorized',
+      },
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Internal Server Error',
+    schema: {
+      example: {
+        statusCode: 500,
+        message: 'Internal Server Error',
+        error: 'Internal Server Error',
+      },
+    },
+  })
   create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
   }
 
   @Get()
   @Roles(Role.SuperAdmin)
+  @ApiOperation({
+    summary: 'Get all users',
+    description: 'Get all users',
+  })
+  @ApiSecurity('jwt')
+  @ApiResponse({ status: 200, description: 'Users obtained successfully', type: [User] })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+    schema: {
+      example: {
+        statusCode: 401,
+        message: 'Unauthorized',
+        error: 'Unauthorized',
+      },
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Internal Server Error',
+    schema: {
+      example: {
+        statusCode: 500,
+        message: 'Internal Server Error',
+        error: 'Internal Server Error',
+      },
+    },
+  })
   findAll() {
     return this.userService.findAll();
   }
 
   @Get(':id')
   @Roles(...RolesUSers)
+  @ApiOperation({
+    summary: 'Get user by id',
+    description: 'Get user by id',
+  })
+  @ApiSecurity('jwt')
+  @ApiParam({ name: 'id', description: 'User Id', type: 'number' })
+  @ApiResponse({ status: 200, description: 'User obtained successfully', type: User })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+    schema: {
+      example: {
+        statusCode: 401,
+        message: 'Unauthorized',
+        error: 'Unauthorized',
+      },
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Internal Server Error',
+    schema: {
+      example: {
+        statusCode: 500,
+        message: 'Internal Server Error',
+        error: 'Internal Server Error',
+      },
+    },
+  })
   findOne(@Param('id') id: string) {
     return this.userService.findOne(+id);
   }
 
   @Patch(':id')
   @Roles(...RolesUSers)
+  @ApiOperation({
+    summary: 'Update a user by id',
+    description: 'Update a user by id',
+  })
+  @ApiSecurity('jwt')
+  @ApiParam({ name: 'id', description: 'User Id', type: 'number' })
+  @ApiResponse({ status: 200, description: 'User updated successfully', type: User })
+  @ApiBadRequestResponse({
+    description: 'Bad Request',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: 'Bad Request',
+        error: 'Bad Request',
+      },
+    },
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+    schema: {
+      example: {
+        statusCode: 401,
+        message: 'Unauthorized',
+        error: 'Unauthorized',
+      },
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Internal Server Error',
+    schema: {
+      example: {
+        statusCode: 500,
+        message: 'Internal Server Error',
+        error: 'Internal Server Error',
+      },
+    },
+  })
   update(
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
@@ -69,6 +206,33 @@ export class UserController {
 
   @Delete(':id')
   @Roles(Role.SuperAdmin)
+  @ApiOperation({
+    summary: 'Delete a user by id',
+    description: 'Delete a user by id',
+  })
+  @ApiSecurity('jwt')
+  @ApiParam({ name: 'id', description: 'User Id', type: 'number' })
+  @ApiResponse({ status: 200, description: 'User deleted successfully', type: User })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+    schema: {
+      example: {
+        statusCode: 401,
+        message: 'Unauthorized',
+        error: 'Unauthorized',
+      },
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Internal Server Error',
+    schema: {
+      example: {
+        statusCode: 500,
+        message: 'Internal Server Error',
+        error: 'Internal Server Error',
+      },
+    },
+  })
   remove(@Param('id') id: string) {
     return this.userService.remove(+id);
   }
