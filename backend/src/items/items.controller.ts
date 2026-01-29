@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { ItemsService } from './items.service';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
 import { Item } from './entities/item.entity';
 import {
+  ApiBadRequestResponse,
   ApiBody,
   ApiInternalServerErrorResponse,
   ApiOperation,
@@ -11,6 +12,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { FilterQueryItemDto } from './dto/filter-query-item.dto';
 
 @ApiTags('Items')
 @Controller('items')
@@ -39,7 +41,8 @@ export class ItemsController {
     return this.itemsService.create(createItemDto);
   }
 
-  @Get()
+  @Get('get/all')
+  @ApiOperation({ summary: 'Get all items', description: 'Get all items' })
   @ApiResponse({ status: 200, description: 'Items obtained successfully', type: [Item] })
   @ApiInternalServerErrorResponse({
     description: 'Internal Server Error',
@@ -71,6 +74,47 @@ export class ItemsController {
   })
   findOne(@Param('id') id: string) {
     return this.itemsService.findOne(+id);
+  }
+
+  @Get('')
+  @ApiOperation({ summary: 'Get items by filter', description: 'Get items by filter' })
+  @ApiResponse({
+    status: 200,
+    description: 'Items obtained successfully',
+    schema: {
+      example: {
+        data: [Item],
+        meta: {
+          total: 0,
+          offset: 0,
+          limit: 0,
+          nextOffset: null,
+        },
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'Bad Request',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: 'Bad Request',
+        error: 'Bad Request',
+      },
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Internal Server Error',
+    schema: {
+      example: {
+        statusCode: 500,
+        message: 'Internal Server Error',
+        error: 'Internal Server Error',
+      },
+    },
+  })
+  filter(@Query() filterQueryItemDto: FilterQueryItemDto) {
+    return this.itemsService.filter(filterQueryItemDto);
   }
 
   @Patch(':id')
