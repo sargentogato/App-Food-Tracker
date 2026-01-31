@@ -32,8 +32,7 @@ export class RolesGuard implements CanActivate {
       return false;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    const currentUser = validateToken(cookies.jwt, this.config) as Partial<User>;
+    const currentUser = validateToken(cookies.jwt as string, this.config) as Partial<User>;
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     request['currentUser'] = currentUser;
