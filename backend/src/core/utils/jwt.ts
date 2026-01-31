@@ -1,6 +1,6 @@
 import * as jwt from 'jsonwebtoken';
 import { ConfigService } from '@nestjs/config';
-import { User } from 'src/user/entities/user.entity';
+import { User } from 'src/modules/user/entities/user.entity';
 
 export function validateToken(token: string, config: ConfigService): Partial<User> | null {
   try {

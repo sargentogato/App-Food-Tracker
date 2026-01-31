@@ -2,9 +2,10 @@ import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
-import { Role } from '../../user/enums/role.enum';
+import { Role } from '../../modules/user/enums/role.enum';
 import { ROLES_KEY } from '../decorators/roles.decorator';
-import { validateToken } from 'src/utils/jwt';
+import { validateToken } from 'src/core/utils/jwt';
+import { User } from 'src/modules/user/entities/user.entity';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -14,6 +15,8 @@ export class RolesGuard implements CanActivate {
   ) {}
 
   canActivate(context: ExecutionContext): boolean {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const request = context.switchToHttp().getRequest();
     const requiredRoles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -30,11 +33,10 @@ export class RolesGuard implements CanActivate {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    const currentUser = validateToken(cookies.jwt, this.config);
-    //console.log(currentUser);
+    const currentUser = validateToken(cookies.jwt, this.config) as Partial<User>;
 
-    // validate token
-    //console.log(requiredRoles);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    request['currentUser'] = currentUser;
 
     return requiredRoles.includes(currentUser?.role as Role);
   }

@@ -5,7 +5,7 @@ import { Item } from './entities/item.entity';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
 import { FilterQueryItemDto } from './dto/filter-query-item.dto';
-import { PaginationResult } from 'src/types/pagination-result';
+import { PaginationResult } from 'src/core/types/pagination-result';
 
 @Injectable()
 export class ItemsService {

@@ -5,10 +5,10 @@ import { DataSource } from 'typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
-import { Item } from './items/entities/item.entity';
-import { ItemsModule } from './items/items.module';
-import { User } from './user/entities/user.entity';
-import { UserModule } from './user/user.module';
+import { Item } from './modules/items/entities/item.entity';
+import { ItemsModule } from './modules/items/items.module';
+import { User } from './modules/user/entities/user.entity';
+import { UserModule } from './modules/user/user.module';
 
 @Module({
   imports: [
