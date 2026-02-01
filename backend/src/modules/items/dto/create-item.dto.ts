@@ -1,5 +1,4 @@
-import { Type } from 'class-transformer';
-import { IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 export class CreateItemDto {
   @IsString()
@@ -12,12 +11,4 @@ export class CreateItemDto {
   @IsString()
   @IsOptional()
   category?: string;
-
-  @IsNumber()
-  @Type(() => Number)
-  created_by: number;
-
-  @IsNumber()
-  @Type(() => Number)
-  updated_by: number;
 }

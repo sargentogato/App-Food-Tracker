@@ -13,8 +13,10 @@ export class ItemsService {
     @InjectRepository(Item)
     private itemsRepository: Repository<Item>,
   ) {}
-  create(createItemDto: CreateItemDto) {
-    return this.itemsRepository.save(createItemDto);
+  create(createItemDto: CreateItemDto, userId: number): Promise<Item> {
+    const createItem = { ...createItemDto, created_by: userId, updated_by: userId };
+
+    return this.itemsRepository.save(createItem);
   }
 
   findAll(): Promise<Item[]> {
@@ -61,8 +63,10 @@ export class ItemsService {
     return result;
   }
 
-  update(id: number, updateItemDto: UpdateItemDto): Promise<Item> {
-    return this.itemsRepository.save({ ...updateItemDto, id });
+  update(id: number, updateItemDto: UpdateItemDto, userId: number): Promise<Item> {
+    const updateItem = { ...updateItemDto, updated_by: userId };
+
+    return this.itemsRepository.save({ ...updateItem, id });
   }
 
   remove(id: number): Promise<DeleteResult> {

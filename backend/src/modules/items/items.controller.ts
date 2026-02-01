@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ItemsService } from './items.service';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
@@ -13,13 +23,19 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { FilterQueryItemDto } from './dto/filter-query-item.dto';
+import { RolesGuard } from 'src/core/guards/roles.guard';
+import { Role } from '../user/enums/role.enum';
+import { Roles } from 'src/core/decorators/roles.decorator';
+import { GetUser } from 'src/core/decorators/get-user.decorator';
 
 @ApiTags('Items')
 @Controller('items')
+@UseGuards(RolesGuard)
 export class ItemsController {
   constructor(private readonly itemsService: ItemsService) {}
 
   @Post()
+  @Roles(Role.SuperAdmin, Role.Admin)
   @ApiOperation({ summary: 'Create a new item', description: 'Create a new item' })
   @ApiBody({ type: CreateItemDto })
   @ApiResponse({
@@ -37,8 +53,8 @@ export class ItemsController {
       },
     },
   })
-  create(@Body() createItemDto: CreateItemDto) {
-    return this.itemsService.create(createItemDto);
+  create(@Body() createItemDto: CreateItemDto, @GetUser('id') userId: number) {
+    return this.itemsService.create(createItemDto, userId);
   }
 
   @Get('get/all')
@@ -118,6 +134,7 @@ export class ItemsController {
   }
 
   @Patch(':id')
+  @Roles(Role.SuperAdmin, Role.Admin)
   @ApiOperation({ summary: 'Update an item by id', description: 'Update an item by id' })
   @ApiParam({ name: 'id', description: 'Item Id', type: 'number' })
   @ApiBody({ type: UpdateItemDto })
@@ -132,11 +149,16 @@ export class ItemsController {
       },
     },
   })
-  update(@Param('id') id: string, @Body() updateItemDto: UpdateItemDto) {
-    return this.itemsService.update(+id, updateItemDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateItemDto: UpdateItemDto,
+    @GetUser('id') userId: number,
+  ) {
+    return this.itemsService.update(+id, updateItemDto, userId);
   }
 
   @Delete(':id')
+  @Roles(Role.SuperAdmin, Role.Admin)
   @ApiOperation({ summary: 'Delete an item by id', description: 'Delete an item by id' })
   @ApiParam({ name: 'id', description: 'Item Id', type: 'number' })
   @ApiResponse({ status: 200, description: 'Item deleted successfully', type: Item })
