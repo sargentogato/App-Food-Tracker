@@ -34,10 +34,10 @@ export class ItemsService {
     const queryBuilder = this.itemsRepository.createQueryBuilder('items');
 
     if (name) {
-      queryBuilder.where('items.name LIKE :name', { name: `%${name}%` });
+      queryBuilder.andWhere('items.name LIKE :name', { name: `%${name}%` });
     }
     if (category) {
-      queryBuilder.where('items.category = :category', { category });
+      queryBuilder.andWhere('items.category = :category', { category });
     }
     const [items, count] = await queryBuilder
       .orderBy('items.created_at', 'ASC')
