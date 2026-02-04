@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../modules/user/user.service';
+import { Response } from 'express';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -10,7 +11,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async signIn(username: string, pass: string, res): Promise<{ access_token: string }> {
+  async signIn(username: string, pass: string, res: Response): Promise<{ access_token: string }> {
     const user = await this.userService.findOneByUser(username);
 
     if (!user) {
@@ -23,9 +24,17 @@ export class AuthService {
     }
     const payload = { id: user.id, username: user.username, role: user.role };
 
-    const access_token = await this.jwtService.signAsync(payload);
+    let access_token: string;
+    try {
+      access_token = await this.jwtService.signAsync(payload);
+    } catch (error) {
+      throw new UnauthorizedException(`Error fetching token: ${error}`);
+    }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    if (!access_token) {
+      throw new UnauthorizedException();
+    }
+
     res.cookie('jwt', access_token, { httpOnly: true });
 
     return {

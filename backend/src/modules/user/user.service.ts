@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DeleteResult, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
+import { handleDbError } from 'src/core/utils/mysql-error-handler';
 
 @Injectable()
 export class UserService {
@@ -15,28 +16,81 @@ export class UserService {
 
   async create(createUserDto: CreateUserDto): Promise<Partial<User>> {
     createUserDto.password = await bcrypt.hash(createUserDto.password, 10);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...createdUser } = await this.usersRepository.save(createUserDto);
+
+    let createdUser: Partial<User>;
+
+    try {
+      createdUser = await this.usersRepository.save(createUserDto);
+    } catch (error) {
+      return handleDbError(error, 'create user');
+    }
+
+    delete createdUser.password;
     return createdUser;
   }
 
-  findAll(): Promise<User[]> {
-    return this.usersRepository.find();
+  async findAll(): Promise<User[]> {
+    try {
+      return await this.usersRepository.find();
+    } catch (error: unknown) {
+      return handleDbError(error, 'fetch users');
+    }
   }
 
-  findOne(id: number): Promise<User | null> {
-    return this.usersRepository.findOneBy({ id });
+  async findOne(id: number): Promise<User> {
+    let user: User | null;
+    try {
+      user = await this.usersRepository.findOneBy({ id });
+    } catch (error: unknown) {
+      return handleDbError(error, `fetch user with id ${id}`);
+    }
+
+    if (!user) {
+      throw new NotFoundException(`User with id ${id} not found`);
+    }
+
+    return user;
   }
 
-  findOneByUser(username: string): Promise<User | null> {
-    return this.usersRepository.findOneBy({ username });
+  async findOneByUser(username: string): Promise<User> {
+    let user: User | null;
+    try {
+      user = await this.usersRepository.findOneBy({ username });
+    } catch (error: unknown) {
+      return handleDbError(error, `fetch user with username ${username}`);
+    }
+
+    if (!user) {
+      throw new NotFoundException(`User with username ${username} not found`);
+    }
+
+    return user;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto): Promise<User | null> {
-    return this.usersRepository.save({ ...updateUserDto, id });
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+    try {
+      const result = await this.usersRepository.update(id, updateUserDto);
+
+      if (result.affected === 0) {
+        throw new NotFoundException(`User with id ${id} not found`);
+      }
+
+      return this.findOne(id);
+    } catch (error: unknown) {
+      if (error instanceof NotFoundException) throw error;
+      return handleDbError(error, `update user with id ${id}`);
+    }
   }
 
-  async remove(id: number): Promise<void> {
-    await this.usersRepository.delete(id);
+  async remove(id: number): Promise<DeleteResult> {
+    try {
+      const result = await this.usersRepository.delete(id);
+      if (result.affected === 0) {
+        throw new NotFoundException(`User with id ${id} not found`);
+      }
+      return result;
+    } catch (error: unknown) {
+      return handleDbError(error, `delete user with id ${id}`);
+    }
   }
 }
