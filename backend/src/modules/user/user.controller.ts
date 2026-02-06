@@ -9,15 +9,15 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
-import { Roles } from '../auth/decorators/roles.decorator';
-import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../../core/decorators/roles.decorator';
+import { RolesGuard } from '../../core/guards/roles.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { Role } from './enums/role.enum';
 import { UserService } from './user.service';
 import { Request as ExpressRequest } from 'express';
-import { validateToken } from 'src/utils/jwt';
+import { validateToken } from 'src/core/utils/jwt';
 import { ConfigService } from '@nestjs/config';
 import {
   ApiBadRequestResponse,
@@ -192,7 +192,7 @@ export class UserController {
     if (!cookies.jwt) {
       return null;
     }
-    const currentUser = validateToken(cookies.jwt as string, new ConfigService());
+    const currentUser = validateToken(cookies.jwt as string, new ConfigService()) as Partial<User>;
     if (!currentUser) {
       return null;
     }
