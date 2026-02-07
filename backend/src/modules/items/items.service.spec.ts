@@ -16,8 +16,8 @@ describe('ItemsService', () => {
   let repository: MockRepository<Item>;
   let queryBuilder: MockQueryBuilder<Item>;
 
-  // Mock de la entidad para resultados
-  const mockItem = { id: 1, name: 'Test', category: 'Cat' } as Item;
+  // Result mocks
+  const mockItem = { id: 1, name: 'Test', category: 'Test' } as Item;
 
   beforeEach(async () => {
     queryBuilder = {
