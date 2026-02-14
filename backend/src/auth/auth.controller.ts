@@ -10,6 +10,7 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { Response as ExpressResponse } from 'express';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -59,7 +60,10 @@ export class AuthController {
       },
     },
   })
-  async signin(@Body() signInDto: SignInDto, @Response({ passthrough: true }) res) {
+  async signin(
+    @Body() signInDto: SignInDto,
+    @Response({ passthrough: true }) res: ExpressResponse,
+  ) {
     await this.authService.signIn(signInDto.username, signInDto.password, res);
 
     return {

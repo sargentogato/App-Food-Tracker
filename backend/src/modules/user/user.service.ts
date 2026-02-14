@@ -90,6 +90,7 @@ export class UserService {
       }
       return result;
     } catch (error: unknown) {
+      if (error instanceof NotFoundException) throw error;
       return handleDbError(error, `delete user with id ${id}`);
     }
   }
