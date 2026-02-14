@@ -48,7 +48,7 @@ export class ClientsService {
 
   async update(id: number, updateClientDto: UpdateClientDto, userId: number) {
     try {
-      const updateClient = { ...updateClientDto, updated_by: userId, updated_at: new Date() };
+      const updateClient = { ...updateClientDto, updated_by: userId };
 
       const result = await this.clientsRepository.update(id, updateClient);
 
