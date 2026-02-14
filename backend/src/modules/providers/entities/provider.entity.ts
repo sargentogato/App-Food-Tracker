@@ -1,5 +1,6 @@
-import { PrimaryGeneratedColumn, Column } from 'typeorm';
+import { PrimaryGeneratedColumn, Column, Entity } from 'typeorm';
 
+@Entity({ name: 'providers' })
 export class Provider {
   @PrimaryGeneratedColumn()
   id: number;
@@ -7,16 +8,16 @@ export class Provider {
   @Column()
   name: string;
 
-  @Column()
+  @Column({ default: '' })
   contactName: string;
 
-  @Column()
+  @Column({ default: '' })
   phone: string;
 
-  @Column()
+  @Column({ default: '' })
   email: string;
 
-  @Column()
+  @Column({ default: '' })
   address: string;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })

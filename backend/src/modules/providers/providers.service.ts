@@ -48,7 +48,7 @@ export class ProvidersService {
 
   async update(id: number, updateProviderDto: UpdateProviderDto, userId: number) {
     try {
-      const updateProvider = { ...updateProviderDto, updated_by: userId, update_at: new Date() };
+      const updateProvider = { ...updateProviderDto, updated_by: userId, updated_at: new Date() };
 
       const result = await this.providersRepository.update(id, updateProvider);
 
