@@ -22,6 +22,7 @@ import {
   ApiOperation,
   ApiParam,
   ApiResponse,
+  ApiSecurity,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -41,6 +42,7 @@ export class ItemsController {
   @Roles(Role.SuperAdmin, Role.Admin)
   @ApiOperation({ summary: 'Create a new item', description: 'Create a new item' })
   @ApiBody({ type: CreateItemDto })
+  @ApiSecurity('jwt')
   @ApiResponse({
     status: 201,
     description: 'Item created successfully',
@@ -181,6 +183,7 @@ export class ItemsController {
   @ApiOperation({ summary: 'Update an item by id', description: 'Update an item by id' })
   @ApiParam({ name: 'id', description: 'Item Id', type: 'number' })
   @ApiBody({ type: UpdateItemDto })
+  @ApiSecurity('jwt')
   @ApiResponse({ status: 200, description: 'Item updated successfully', type: Item })
   @ApiBadRequestResponse({
     description: 'Bad Request',
@@ -234,6 +237,7 @@ export class ItemsController {
   @Roles(Role.SuperAdmin, Role.Admin)
   @ApiOperation({ summary: 'Delete an item by id', description: 'Delete an item by id' })
   @ApiParam({ name: 'id', description: 'Item Id', type: 'number' })
+  @ApiSecurity('jwt')
   @ApiResponse({ status: 200, description: 'Item deleted successfully.' })
   @ApiUnauthorizedResponse({
     description: 'Unauthorized',

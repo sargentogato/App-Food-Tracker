@@ -5,6 +5,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
 import { DeleteResult, Repository } from 'typeorm';
 import { handleDbError } from 'src/core/utils/mysql-error-handler';
+import { FilterQueryProductsDto } from './dto/filter-query-products.dto';
+import { PaginationResult } from 'src/core/types/pagination-result';
 
 @Injectable()
 export class ProductsService {
@@ -25,12 +27,83 @@ export class ProductsService {
     }
   }
 
-  findAll() {
-    return `This action returns all products`;
+  async findAll() {
+    try {
+      return await this.productsRepository.find({
+        relations: { item: true },
+      });
+    } catch (error: unknown) {
+      return handleDbError(error, 'fetch products');
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} product`;
+  async findOne(id: number) {
+    let product: Product | null;
+    try {
+      product = await this.productsRepository.findOne({
+        where: { id },
+        relations: { item: true },
+      });
+    } catch (error: unknown) {
+      return handleDbError(error, `fetch product with id ${id}`);
+    }
+
+    if (!product) {
+      throw new NotFoundException(`Product with id ${id} not found`);
+    }
+
+    return product;
+  }
+
+  async filter(filterQueryProductsDto: FilterQueryProductsDto): Promise<PaginationResult<Product>> {
+    const { item_name, batch_number, expire_date, limit = 10, offset = 0 } = filterQueryProductsDto;
+
+    const queryBuilder = this.productsRepository
+      .createQueryBuilder('products')
+      .leftJoinAndSelect('products.item', 'item');
+
+    if (item_name) {
+      queryBuilder.andWhere('item.name LIKE :item_name', { item_name: `%${item_name}%` });
+    }
+    if (batch_number) {
+      queryBuilder.andWhere('products.batch_number LIKE :batch_number', {
+        batch_number: `%${batch_number}%`,
+      });
+    }
+    if (expire_date) {
+      queryBuilder.andWhere('products.expire_date < :expire_date', { expire_date });
+    }
+
+    let products: Product[];
+    let count: number;
+
+    try {
+      [products, count] = await queryBuilder
+        .orderBy('products.created_at', 'ASC')
+        .skip(offset)
+        .take(limit)
+        .getManyAndCount();
+    } catch (error: unknown) {
+      return handleDbError(error, 'fetch filtered products');
+    }
+
+    let newOffset = offset + limit;
+
+    if (newOffset > count) {
+      newOffset = count;
+    }
+
+    const result: PaginationResult<Product> = {
+      data: products,
+      meta: {
+        total: count,
+        offset,
+        limit,
+        nextOffset: newOffset > count ? null : newOffset,
+      },
+    };
+
+    return result;
   }
 
   async update(id: number, updateProductDto: UpdateProductDto, userId: number) {
