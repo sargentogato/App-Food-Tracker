@@ -22,7 +22,9 @@ import { ConfigService } from '@nestjs/config';
 import {
   ApiBadRequestResponse,
   ApiBody,
+  ApiForbiddenResponse,
   ApiInternalServerErrorResponse,
+  ApiNotFoundResponse,
   ApiOperation,
   ApiParam,
   ApiResponse,
@@ -65,6 +67,16 @@ export class UserController {
       },
     },
   })
+  @ApiForbiddenResponse({
+    description: 'Forbidden',
+    schema: {
+      example: {
+        statusCode: 403,
+        message: 'Forbidden',
+        error: 'Forbidden',
+      },
+    },
+  })
   @ApiInternalServerErrorResponse({
     description: 'Internal Server Error',
     schema: {
@@ -94,6 +106,16 @@ export class UserController {
         statusCode: 401,
         message: 'Unauthorized',
         error: 'Unauthorized',
+      },
+    },
+  })
+  @ApiForbiddenResponse({
+    description: 'Forbidden',
+    schema: {
+      example: {
+        statusCode: 403,
+        message: 'Forbidden',
+        error: 'Forbidden',
       },
     },
   })
@@ -127,6 +149,26 @@ export class UserController {
         statusCode: 401,
         message: 'Unauthorized',
         error: 'Unauthorized',
+      },
+    },
+  })
+  @ApiForbiddenResponse({
+    description: 'Forbidden',
+    schema: {
+      example: {
+        statusCode: 403,
+        message: 'Forbidden',
+        error: 'Forbidden',
+      },
+    },
+  })
+  @ApiNotFoundResponse({
+    description: 'Not Found',
+    schema: {
+      example: {
+        statusCode: 404,
+        message: 'Not Found',
+        error: 'Not Found',
       },
     },
   })
@@ -170,6 +212,26 @@ export class UserController {
         statusCode: 401,
         message: 'Unauthorized',
         error: 'Unauthorized',
+      },
+    },
+  })
+  @ApiForbiddenResponse({
+    description: 'Forbidden',
+    schema: {
+      example: {
+        statusCode: 403,
+        message: 'Forbidden',
+        error: 'Forbidden',
+      },
+    },
+  })
+  @ApiNotFoundResponse({
+    description: 'Not Found',
+    schema: {
+      example: {
+        statusCode: 404,
+        message: 'Not Found',
+        error: 'Not Found',
       },
     },
   })
@@ -220,6 +282,36 @@ export class UserController {
         statusCode: 401,
         message: 'Unauthorized',
         error: 'Unauthorized',
+      },
+    },
+  })
+  @ApiForbiddenResponse({
+    description: 'Forbidden',
+    schema: {
+      example: {
+        statusCode: 403,
+        message: 'Forbidden',
+        error: 'Forbidden',
+      },
+    },
+  })
+  @ApiNotFoundResponse({
+    description: 'Not Found',
+    schema: {
+      example: {
+        statusCode: 404,
+        message: 'Not Found',
+        error: 'Not Found',
+      },
+    },
+  })
+  @ApiNotFoundResponse({
+    description: 'Not Found',
+    schema: {
+      example: {
+        statusCode: 404,
+        message: 'Not Found',
+        error: 'Not Found',
       },
     },
   })

@@ -1,18 +1,8 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
-import { ItemsService } from './items.service';
-import { CreateItemDto } from './dto/create-item.dto';
-import { UpdateItemDto } from './dto/update-item.dto';
-import { Item } from './entities/item.entity';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { ClientsService } from './clients.service';
+import { CreateClientDto } from './dto/create-client.dto';
+import { UpdateClientDto } from './dto/update-client.dto';
+import { GetUser } from 'src/core/decorators/get-user.decorator';
 import {
   ApiBadRequestResponse,
   ApiBody,
@@ -25,27 +15,22 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { FilterQueryItemDto } from './dto/filter-query-item.dto';
 import { RolesGuard } from 'src/core/guards/roles.guard';
 import { Role } from '../user/enums/role.enum';
 import { Roles } from 'src/core/decorators/roles.decorator';
-import { GetUser } from 'src/core/decorators/get-user.decorator';
+import { Client } from './entities/client.entity';
 
-@ApiTags('Items')
-@Controller('items')
+@ApiTags('Clients')
+@Controller('clients')
 @UseGuards(RolesGuard)
-export class ItemsController {
-  constructor(private readonly itemsService: ItemsService) {}
+export class ClientsController {
+  constructor(private readonly clientsService: ClientsService) {}
 
   @Post()
   @Roles(Role.SuperAdmin, Role.Admin)
-  @ApiOperation({ summary: 'Create a new item', description: 'Create a new item' })
-  @ApiBody({ type: CreateItemDto })
-  @ApiResponse({
-    status: 201,
-    description: 'Item created successfully',
-    type: Item,
-  })
+  @ApiOperation({ summary: 'Create a new client', description: 'Create a new client' })
+  @ApiBody({ type: CreateClientDto })
+  @ApiResponse({ status: 201, description: 'Client created successfully', type: Client })
   @ApiBadRequestResponse({
     description: 'Bad Request',
     schema: {
@@ -86,13 +71,13 @@ export class ItemsController {
       },
     },
   })
-  create(@Body() createItemDto: CreateItemDto, @GetUser('id') userId: number) {
-    return this.itemsService.create(createItemDto, userId);
+  create(@Body() createClientDto: CreateClientDto, @GetUser('id') userId: number) {
+    return this.clientsService.create(createClientDto, userId);
   }
 
-  @Get('get/all')
-  @ApiOperation({ summary: 'Get all items', description: 'Get all items' })
-  @ApiResponse({ status: 200, description: 'Items obtained successfully', type: [Item] })
+  @Get()
+  @ApiOperation({ summary: 'Get all clients', description: 'Get all clients' })
+  @ApiResponse({ status: 200, description: 'Clients fetched successfully', type: [Client] })
   @ApiInternalServerErrorResponse({
     description: 'Internal Server Error',
     schema: {
@@ -104,19 +89,19 @@ export class ItemsController {
     },
   })
   findAll() {
-    return this.itemsService.findAll();
+    return this.clientsService.findAll();
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get an item by id', description: 'Get an item by id' })
-  @ApiParam({ name: 'id', description: 'Item Id', type: 'number' })
-  @ApiResponse({ status: 200, description: 'Item obtained successfully', type: Item })
+  @ApiOperation({ summary: 'Get a client by id', description: 'Get a client by id' })
+  @ApiParam({ name: 'id', description: 'Client id', type: 'number' })
+  @ApiResponse({ status: 200, description: 'Client fetched successfully', type: Client })
   @ApiNotFoundResponse({
-    description: 'Not Found',
+    description: 'Client not found',
     schema: {
       example: {
         statusCode: 404,
-        message: 'Not Found',
+        message: 'Client not found',
         error: 'Not Found',
       },
     },
@@ -132,56 +117,15 @@ export class ItemsController {
     },
   })
   findOne(@Param('id') id: string) {
-    return this.itemsService.findOne(+id);
-  }
-
-  @Get('')
-  @ApiOperation({ summary: 'Get items by filter', description: 'Get items by filter' })
-  @ApiResponse({
-    status: 200,
-    description: 'Items obtained successfully',
-    schema: {
-      example: {
-        data: [Item],
-        meta: {
-          total: 0,
-          offset: 0,
-          limit: 0,
-          nextOffset: null,
-        },
-      },
-    },
-  })
-  @ApiBadRequestResponse({
-    description: 'Bad Request',
-    schema: {
-      example: {
-        statusCode: 400,
-        message: 'Bad Request',
-        error: 'Bad Request',
-      },
-    },
-  })
-  @ApiInternalServerErrorResponse({
-    description: 'Internal Server Error',
-    schema: {
-      example: {
-        statusCode: 500,
-        message: 'Internal Server Error',
-        error: 'Internal Server Error',
-      },
-    },
-  })
-  filter(@Query() filterQueryItemDto: FilterQueryItemDto) {
-    return this.itemsService.filter(filterQueryItemDto);
+    return this.clientsService.findOne(+id);
   }
 
   @Patch(':id')
   @Roles(Role.SuperAdmin, Role.Admin)
-  @ApiOperation({ summary: 'Update an item by id', description: 'Update an item by id' })
-  @ApiParam({ name: 'id', description: 'Item Id', type: 'number' })
-  @ApiBody({ type: UpdateItemDto })
-  @ApiResponse({ status: 200, description: 'Item updated successfully', type: Item })
+  @ApiOperation({ summary: 'Update a client by id', description: 'Update a client by id' })
+  @ApiParam({ name: 'id', description: 'Client id', type: 'number' })
+  @ApiBody({ type: UpdateClientDto })
+  @ApiResponse({ status: 200, description: 'Client updated successfully', type: Client })
   @ApiBadRequestResponse({
     description: 'Bad Request',
     schema: {
@@ -224,17 +168,17 @@ export class ItemsController {
   })
   update(
     @Param('id') id: string,
-    @Body() updateItemDto: UpdateItemDto,
+    @Body() updateClientDto: UpdateClientDto,
     @GetUser('id') userId: number,
   ) {
-    return this.itemsService.update(+id, updateItemDto, userId);
+    return this.clientsService.update(+id, updateClientDto, userId);
   }
 
   @Delete(':id')
   @Roles(Role.SuperAdmin, Role.Admin)
-  @ApiOperation({ summary: 'Delete an item by id', description: 'Delete an item by id' })
-  @ApiParam({ name: 'id', description: 'Item Id', type: 'number' })
-  @ApiResponse({ status: 200, description: 'Item deleted successfully', type: Item })
+  @ApiOperation({ summary: 'Delete a client by id', description: 'Delete a client by id' })
+  @ApiParam({ name: 'id', description: 'Client id', type: 'number' })
+  @ApiResponse({ status: 200, description: 'Client deleted successfully', type: Client })
   @ApiUnauthorizedResponse({
     description: 'Unauthorized',
     schema: {
@@ -256,11 +200,11 @@ export class ItemsController {
     },
   })
   @ApiNotFoundResponse({
-    description: 'Not Found',
+    description: 'Client not found',
     schema: {
       example: {
         statusCode: 404,
-        message: 'Not Found',
+        message: 'Client not found',
         error: 'Not Found',
       },
     },
@@ -276,6 +220,6 @@ export class ItemsController {
     },
   })
   remove(@Param('id') id: string) {
-    return this.itemsService.remove(+id);
+    return this.clientsService.remove(+id);
   }
 }

@@ -94,7 +94,7 @@ export class ItemsService {
 
   async update(id: number, updateItemDto: UpdateItemDto, userId: number): Promise<Item> {
     try {
-      const updateItem = { ...updateItemDto, updated_by: userId };
+      const updateItem = { ...updateItemDto, updated_by: userId, updated_at: new Date() };
 
       const result = await this.itemsRepository.update(id, updateItem);
 
