@@ -9,7 +9,6 @@ import { Item } from './modules/items/entities/item.entity';
 import { ItemsModule } from './modules/items/items.module';
 import { User } from './modules/user/entities/user.entity';
 import { UserModule } from './modules/user/user.module';
-import { ClientsResolver } from './modules/clients/clients.resolver';
 import { ClientsModule } from './modules/clients/clients.module';
 
 @Module({
@@ -32,7 +31,7 @@ import { ClientsModule } from './modules/clients/clients.module';
     ClientsModule,
   ],
   controllers: [AppController],
-  providers: [AppService, ClientsResolver],
+  providers: [AppService],
 })
 export class AppModule {
   constructor(private dataSource: DataSource) {}
