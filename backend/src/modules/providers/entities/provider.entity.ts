@@ -1,15 +1,24 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { PrimaryGeneratedColumn, Column, Entity } from 'typeorm';
 
-@Entity({ name: 'clients' })
-export class Client {
+@Entity({ name: 'providers' })
+export class Provider {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
   name: string;
 
-  @Column()
+  @Column({ default: '' })
   contactName: string;
+
+  @Column({ default: '' })
+  phone: string;
+
+  @Column({ default: '' })
+  email: string;
+
+  @Column({ default: '' })
+  address: string;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;

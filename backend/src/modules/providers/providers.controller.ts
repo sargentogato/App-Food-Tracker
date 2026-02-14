@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
-import { ClientsService } from './clients.service';
-import { CreateClientDto } from './dto/create-client.dto';
-import { UpdateClientDto } from './dto/update-client.dto';
+import { ProvidersService } from './providers.service';
+import { CreateProviderDto } from './dto/create-provider.dto';
+import { UpdateProviderDto } from './dto/update-provider.dto';
 import { GetUser } from 'src/core/decorators/get-user.decorator';
 import {
   ApiBadRequestResponse,
@@ -18,19 +18,23 @@ import {
 import { RolesGuard } from 'src/core/guards/roles.guard';
 import { Role } from '../user/enums/role.enum';
 import { Roles } from 'src/core/decorators/roles.decorator';
-import { Client } from './entities/client.entity';
+import { Provider } from './entities/provider.entity';
 
-@ApiTags('Clients')
-@Controller('clients')
+@ApiTags('Providers')
+@Controller('providers')
 @UseGuards(RolesGuard)
-export class ClientsController {
-  constructor(private readonly clientsService: ClientsService) {}
+export class ProvidersController {
+  constructor(private readonly providersService: ProvidersService) {}
 
   @Post()
   @Roles(Role.SuperAdmin, Role.Admin)
-  @ApiOperation({ summary: 'Create a new client', description: 'Create a new client' })
-  @ApiBody({ type: CreateClientDto })
-  @ApiResponse({ status: 201, description: 'Client created successfully', type: Client })
+  @ApiOperation({ summary: 'Create a new provider', description: 'Create a new provider' })
+  @ApiBody({ type: CreateProviderDto })
+  @ApiResponse({
+    status: 201,
+    description: 'The provider has been successfully created.',
+    type: Provider,
+  })
   @ApiBadRequestResponse({
     description: 'Bad Request',
     schema: {
@@ -71,13 +75,17 @@ export class ClientsController {
       },
     },
   })
-  create(@Body() createClientDto: CreateClientDto, @GetUser('id') userId: number) {
-    return this.clientsService.create(createClientDto, userId);
+  create(@Body() createProviderDto: CreateProviderDto, @GetUser('id') userId: number) {
+    return this.providersService.create(createProviderDto, userId);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all clients', description: 'Get all clients' })
-  @ApiResponse({ status: 200, description: 'Clients fetched successfully', type: [Client] })
+  @ApiOperation({ summary: 'Get all providers', description: 'Get all providers' })
+  @ApiResponse({
+    status: 200,
+    description: 'The providers have been successfully fetched.',
+    type: [Provider],
+  })
   @ApiInternalServerErrorResponse({
     description: 'Internal Server Error',
     schema: {
@@ -89,19 +97,23 @@ export class ClientsController {
     },
   })
   findAll() {
-    return this.clientsService.findAll();
+    return this.providersService.findAll();
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get a client by id', description: 'Get a client by id' })
-  @ApiParam({ name: 'id', description: 'Client id', type: 'number' })
-  @ApiResponse({ status: 200, description: 'Client fetched successfully', type: Client })
+  @ApiOperation({ summary: 'Get a provider by id', description: 'Get a provider by id' })
+  @ApiParam({ name: 'id', description: 'Provider id', type: 'number' })
+  @ApiResponse({
+    status: 200,
+    description: 'The provider has been successfully fetched.',
+    type: Provider,
+  })
   @ApiNotFoundResponse({
-    description: 'Client not found',
+    description: 'Not Found',
     schema: {
       example: {
         statusCode: 404,
-        message: 'Client not found',
+        message: 'Not Found',
         error: 'Not Found',
       },
     },
@@ -117,15 +129,19 @@ export class ClientsController {
     },
   })
   findOne(@Param('id') id: string) {
-    return this.clientsService.findOne(+id);
+    return this.providersService.findOne(+id);
   }
 
   @Patch(':id')
   @Roles(Role.SuperAdmin, Role.Admin)
-  @ApiOperation({ summary: 'Update a client by id', description: 'Update a client by id' })
-  @ApiParam({ name: 'id', description: 'Client id', type: 'number' })
-  @ApiBody({ type: UpdateClientDto })
-  @ApiResponse({ status: 200, description: 'Client updated successfully', type: Client })
+  @ApiOperation({ summary: 'Update a provider by id', description: 'Update a provider by id' })
+  @ApiParam({ name: 'id', description: 'Provider id', type: 'number' })
+  @ApiBody({ type: UpdateProviderDto })
+  @ApiResponse({
+    status: 200,
+    description: 'The provider has been successfully updated.',
+    type: Provider,
+  })
   @ApiBadRequestResponse({
     description: 'Bad Request',
     schema: {
@@ -156,6 +172,16 @@ export class ClientsController {
       },
     },
   })
+  @ApiNotFoundResponse({
+    description: 'Not Found',
+    schema: {
+      example: {
+        statusCode: 404,
+        message: 'Not Found',
+        error: 'Not Found',
+      },
+    },
+  })
   @ApiInternalServerErrorResponse({
     description: 'Internal Server Error',
     schema: {
@@ -168,43 +194,26 @@ export class ClientsController {
   })
   update(
     @Param('id') id: string,
-    @Body() updateClientDto: UpdateClientDto,
+    @Body() updateProviderDto: UpdateProviderDto,
     @GetUser('id') userId: number,
   ) {
-    return this.clientsService.update(+id, updateClientDto, userId);
+    return this.providersService.update(+id, updateProviderDto, userId);
   }
 
   @Delete(':id')
   @Roles(Role.SuperAdmin, Role.Admin)
-  @ApiOperation({ summary: 'Delete a client by id', description: 'Delete a client by id' })
-  @ApiParam({ name: 'id', description: 'Client id', type: 'number' })
-  @ApiResponse({ status: 200, description: 'Client deleted successfully' })
-  @ApiUnauthorizedResponse({
-    description: 'Unauthorized',
-    schema: {
-      example: {
-        statusCode: 401,
-        message: 'Unauthorized',
-        error: 'Unauthorized',
-      },
-    },
-  })
-  @ApiForbiddenResponse({
-    description: 'Forbidden',
-    schema: {
-      example: {
-        statusCode: 403,
-        message: 'Forbidden',
-        error: 'Forbidden',
-      },
-    },
+  @ApiOperation({ summary: 'Delete a provider by id', description: 'Delete a provider by id' })
+  @ApiParam({ name: 'id', description: 'Provider id', type: 'number' })
+  @ApiResponse({
+    status: 200,
+    description: 'Provider deleted successfully.',
   })
   @ApiNotFoundResponse({
-    description: 'Client not found',
+    description: 'Not Found',
     schema: {
       example: {
         statusCode: 404,
-        message: 'Client not found',
+        message: 'Not Found',
         error: 'Not Found',
       },
     },
@@ -220,6 +229,6 @@ export class ClientsController {
     },
   })
   remove(@Param('id') id: string) {
-    return this.clientsService.remove(+id);
+    return this.providersService.remove(+id);
   }
 }

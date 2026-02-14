@@ -234,7 +234,7 @@ export class ItemsController {
   @Roles(Role.SuperAdmin, Role.Admin)
   @ApiOperation({ summary: 'Delete an item by id', description: 'Delete an item by id' })
   @ApiParam({ name: 'id', description: 'Item Id', type: 'number' })
-  @ApiResponse({ status: 200, description: 'Item deleted successfully', type: Item })
+  @ApiResponse({ status: 200, description: 'Item deleted successfully.' })
   @ApiUnauthorizedResponse({
     description: 'Unauthorized',
     schema: {
