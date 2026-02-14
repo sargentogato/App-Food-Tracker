@@ -274,7 +274,7 @@ export class UserController {
   })
   @ApiSecurity('jwt')
   @ApiParam({ name: 'id', description: 'User Id', type: 'number' })
-  @ApiResponse({ status: 200, description: 'User deleted successfully', type: User })
+  @ApiResponse({ status: 200, description: 'User deleted successfully' })
   @ApiUnauthorizedResponse({
     description: 'Unauthorized',
     schema: {

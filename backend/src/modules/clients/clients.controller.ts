@@ -178,7 +178,7 @@ export class ClientsController {
   @Roles(Role.SuperAdmin, Role.Admin)
   @ApiOperation({ summary: 'Delete a client by id', description: 'Delete a client by id' })
   @ApiParam({ name: 'id', description: 'Client id', type: 'number' })
-  @ApiResponse({ status: 200, description: 'Client deleted successfully', type: Client })
+  @ApiResponse({ status: 200, description: 'Client deleted successfully' })
   @ApiUnauthorizedResponse({
     description: 'Unauthorized',
     schema: {
