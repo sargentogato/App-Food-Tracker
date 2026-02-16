@@ -62,6 +62,8 @@ export class ProductsService {
       .createQueryBuilder('products')
       .leftJoinAndSelect('products.item', 'item');
 
+    queryBuilder.andWhere('products.quantity > 0');
+
     if (item_name) {
       queryBuilder.andWhere('item.name LIKE :item_name', { item_name: `%${item_name}%` });
     }
@@ -82,6 +84,8 @@ export class ProductsService {
         .orderBy('products.created_at', 'ASC')
         .skip(offset)
         .take(limit)
+        .orderBy('products.name', 'ASC')
+        .addOrderBy('products.expire_date', 'ASC')
         .getManyAndCount();
     } catch (error: unknown) {
       return handleDbError(error, 'fetch filtered products');
