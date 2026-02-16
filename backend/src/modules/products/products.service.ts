@@ -84,7 +84,7 @@ export class ProductsService {
         .orderBy('products.created_at', 'ASC')
         .skip(offset)
         .take(limit)
-        .orderBy('products.name', 'ASC')
+        .orderBy('item.name', 'ASC')
         .addOrderBy('products.expire_date', 'ASC')
         .getManyAndCount();
     } catch (error: unknown) {
