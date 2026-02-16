@@ -14,6 +14,7 @@ import {
   ApiResponse,
   ApiTags,
   ApiUnauthorizedResponse,
+  ApiSecurity,
 } from '@nestjs/swagger';
 import { RolesGuard } from 'src/core/guards/roles.guard';
 import { Role } from '../user/enums/role.enum';
@@ -30,6 +31,7 @@ export class ProvidersController {
   @Roles(Role.SuperAdmin, Role.Admin)
   @ApiOperation({ summary: 'Create a new provider', description: 'Create a new provider' })
   @ApiBody({ type: CreateProviderDto })
+  @ApiSecurity('jwt')
   @ApiResponse({
     status: 201,
     description: 'The provider has been successfully created.',
@@ -137,6 +139,7 @@ export class ProvidersController {
   @ApiOperation({ summary: 'Update a provider by id', description: 'Update a provider by id' })
   @ApiParam({ name: 'id', description: 'Provider id', type: 'number' })
   @ApiBody({ type: UpdateProviderDto })
+  @ApiSecurity('jwt')
   @ApiResponse({
     status: 200,
     description: 'The provider has been successfully updated.',
@@ -204,6 +207,7 @@ export class ProvidersController {
   @Roles(Role.SuperAdmin, Role.Admin)
   @ApiOperation({ summary: 'Delete a provider by id', description: 'Delete a provider by id' })
   @ApiParam({ name: 'id', description: 'Provider id', type: 'number' })
+  @ApiSecurity('jwt')
   @ApiResponse({
     status: 200,
     description: 'Provider deleted successfully.',

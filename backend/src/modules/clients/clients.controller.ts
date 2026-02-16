@@ -12,6 +12,7 @@ import {
   ApiOperation,
   ApiParam,
   ApiResponse,
+  ApiSecurity,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -30,6 +31,7 @@ export class ClientsController {
   @Roles(Role.SuperAdmin, Role.Admin)
   @ApiOperation({ summary: 'Create a new client', description: 'Create a new client' })
   @ApiBody({ type: CreateClientDto })
+  @ApiSecurity('jwt')
   @ApiResponse({ status: 201, description: 'Client created successfully', type: Client })
   @ApiBadRequestResponse({
     description: 'Bad Request',
@@ -125,6 +127,7 @@ export class ClientsController {
   @ApiOperation({ summary: 'Update a client by id', description: 'Update a client by id' })
   @ApiParam({ name: 'id', description: 'Client id', type: 'number' })
   @ApiBody({ type: UpdateClientDto })
+  @ApiSecurity('jwt')
   @ApiResponse({ status: 200, description: 'Client updated successfully', type: Client })
   @ApiBadRequestResponse({
     description: 'Bad Request',
@@ -178,6 +181,7 @@ export class ClientsController {
   @Roles(Role.SuperAdmin, Role.Admin)
   @ApiOperation({ summary: 'Delete a client by id', description: 'Delete a client by id' })
   @ApiParam({ name: 'id', description: 'Client id', type: 'number' })
+  @ApiSecurity('jwt')
   @ApiResponse({ status: 200, description: 'Client deleted successfully' })
   @ApiUnauthorizedResponse({
     description: 'Unauthorized',

@@ -9,10 +9,11 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ItemsService } from './items.service';
-import { CreateItemDto } from './dto/create-item.dto';
-import { UpdateItemDto } from './dto/update-item.dto';
-import { Item } from './entities/item.entity';
+import { ProductsService } from './products.service';
+import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
+import { GetUser } from 'src/core/decorators/get-user.decorator';
+import { FilterQueryProductsDto } from './dto/filter-query-products.dto';
 import {
   ApiBadRequestResponse,
   ApiBody,
@@ -21,39 +22,39 @@ import {
   ApiNotFoundResponse,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiResponse,
   ApiSecurity,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { FilterQueryItemDto } from './dto/filter-query-item.dto';
 import { RolesGuard } from 'src/core/guards/roles.guard';
-import { Role } from '../user/enums/role.enum';
 import { Roles } from 'src/core/decorators/roles.decorator';
-import { GetUser } from 'src/core/decorators/get-user.decorator';
+import { Role } from '../user/enums/role.enum';
+import { Product } from './entities/product.entity';
 
-@ApiTags('Items')
-@Controller('items')
+@ApiTags('Products')
+@Controller('products')
 @UseGuards(RolesGuard)
-export class ItemsController {
-  constructor(private readonly itemsService: ItemsService) {}
+export class ProductsController {
+  constructor(private readonly productsService: ProductsService) {}
 
   @Post()
   @Roles(Role.SuperAdmin, Role.Admin)
-  @ApiOperation({ summary: 'Create a new item', description: 'Create a new item' })
-  @ApiBody({ type: CreateItemDto })
+  @ApiOperation({ summary: 'Create a new product', description: 'Create a new product' })
+  @ApiBody({ type: CreateProductDto })
   @ApiSecurity('jwt')
   @ApiResponse({
     status: 201,
-    description: 'Item created successfully',
-    type: Item,
+    description: 'The product has been successfully created.',
+    type: Product,
   })
   @ApiBadRequestResponse({
-    description: 'Bad Request',
+    description: 'Bad request',
     schema: {
       example: {
         statusCode: 400,
-        message: 'Bad Request',
+        message: 'Bad request',
         error: 'Bad Request',
       },
     },
@@ -79,166 +80,140 @@ export class ItemsController {
     },
   })
   @ApiInternalServerErrorResponse({
-    description: 'Internal Server Error',
+    description: 'Internal server error',
     schema: {
       example: {
         statusCode: 500,
-        message: 'Internal Server Error',
+        message: 'Internal server error',
         error: 'Internal Server Error',
       },
     },
   })
-  create(@Body() createItemDto: CreateItemDto, @GetUser('id') userId: number) {
-    return this.itemsService.create(createItemDto, userId);
+  create(@Body() createProductDto: CreateProductDto, @GetUser('id') userId: number) {
+    return this.productsService.create(createProductDto, userId);
   }
 
   @Get('get/all')
-  @ApiOperation({ summary: 'Get all items', description: 'Get all items' })
-  @ApiResponse({ status: 200, description: 'Items obtained successfully', type: [Item] })
+  @ApiOperation({ summary: 'Get all products', description: 'Get all products' })
+  @ApiResponse({
+    status: 200,
+    description: 'Get all products',
+    type: [Product],
+  })
   @ApiInternalServerErrorResponse({
-    description: 'Internal Server Error',
+    description: 'Internal server error',
     schema: {
       example: {
         statusCode: 500,
-        message: 'Internal Server Error',
+        message: 'Internal server error',
         error: 'Internal Server Error',
       },
     },
   })
   findAll() {
-    return this.itemsService.findAll();
+    return this.productsService.findAll();
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get an item by id', description: 'Get an item by id' })
-  @ApiParam({ name: 'id', description: 'Item Id', type: 'number' })
-  @ApiResponse({ status: 200, description: 'Item obtained successfully', type: Item })
+  @ApiOperation({ summary: 'Get product by id', description: 'Get product by id' })
+  @ApiParam({ name: 'id', description: 'Product id', type: 'number' })
+  @ApiResponse({
+    status: 200,
+    description: 'Get product by id',
+    type: Product,
+  })
   @ApiNotFoundResponse({
-    description: 'Not Found',
+    description: 'Product not found',
     schema: {
       example: {
         statusCode: 404,
-        message: 'Not Found',
+        message: 'Product not found',
         error: 'Not Found',
       },
     },
   })
   @ApiInternalServerErrorResponse({
-    description: 'Internal Server Error',
+    description: 'Internal server error',
     schema: {
       example: {
         statusCode: 500,
-        message: 'Internal Server Error',
+        message: 'Internal server error',
         error: 'Internal Server Error',
       },
     },
   })
   findOne(@Param('id') id: string) {
-    return this.itemsService.findOne(+id);
+    return this.productsService.findOne(+id);
   }
 
   @Get('')
-  @ApiOperation({ summary: 'Get items by filter', description: 'Get items by filter' })
+  @ApiOperation({
+    summary: 'Get paginated and filtered products',
+    description: 'Get paginated and filtered products',
+  })
+  @ApiQuery({
+    type: FilterQueryProductsDto,
+  })
   @ApiResponse({
     status: 200,
-    description: 'Items obtained successfully',
+    description: 'Get paginated and filtered products',
     schema: {
       example: {
-        data: [Item],
+        data: [Product],
         meta: {
           total: 0,
           offset: 0,
-          limit: 0,
+          limit: 10,
           nextOffset: null,
         },
       },
     },
   })
   @ApiBadRequestResponse({
-    description: 'Bad Request',
+    description: 'Bad request',
     schema: {
       example: {
         statusCode: 400,
-        message: 'Bad Request',
+        message: 'Bad request',
         error: 'Bad Request',
       },
     },
   })
   @ApiInternalServerErrorResponse({
-    description: 'Internal Server Error',
+    description: 'Internal server error',
     schema: {
       example: {
         statusCode: 500,
-        message: 'Internal Server Error',
+        message: 'Internal server error',
         error: 'Internal Server Error',
       },
     },
   })
-  filter(@Query() filterQueryItemDto: FilterQueryItemDto) {
-    return this.itemsService.filter(filterQueryItemDto);
+  filter(@Query() filterQueryProductsDto: FilterQueryProductsDto) {
+    return this.productsService.filter(filterQueryProductsDto);
   }
 
   @Patch(':id')
   @Roles(Role.SuperAdmin, Role.Admin)
-  @ApiOperation({ summary: 'Update an item by id', description: 'Update an item by id' })
-  @ApiParam({ name: 'id', description: 'Item Id', type: 'number' })
-  @ApiBody({ type: UpdateItemDto })
+  @ApiOperation({ summary: 'Update a product', description: 'Update a product' })
+  @ApiParam({ name: 'id', description: 'Product id', type: 'number' })
+  @ApiBody({ type: UpdateProductDto })
   @ApiSecurity('jwt')
-  @ApiResponse({ status: 200, description: 'Item updated successfully', type: Item })
+  @ApiResponse({
+    status: 200,
+    description: 'Update a product',
+    type: Product,
+  })
   @ApiBadRequestResponse({
-    description: 'Bad Request',
+    description: 'Bad request',
     schema: {
       example: {
         statusCode: 400,
-        message: 'Bad Request',
+        message: 'Bad request',
         error: 'Bad Request',
       },
     },
   })
-  @ApiUnauthorizedResponse({
-    description: 'Unauthorized',
-    schema: {
-      example: {
-        statusCode: 401,
-        message: 'Unauthorized',
-        error: 'Unauthorized',
-      },
-    },
-  })
-  @ApiForbiddenResponse({
-    description: 'Forbidden',
-    schema: {
-      example: {
-        statusCode: 403,
-        message: 'Forbidden',
-        error: 'Forbidden',
-      },
-    },
-  })
-  @ApiInternalServerErrorResponse({
-    description: 'Internal Server Error',
-    schema: {
-      example: {
-        statusCode: 500,
-        message: 'Internal Server Error',
-        error: 'Internal Server Error',
-      },
-    },
-  })
-  update(
-    @Param('id') id: string,
-    @Body() updateItemDto: UpdateItemDto,
-    @GetUser('id') userId: number,
-  ) {
-    return this.itemsService.update(+id, updateItemDto, userId);
-  }
-
-  @Delete(':id')
-  @Roles(Role.SuperAdmin, Role.Admin)
-  @ApiOperation({ summary: 'Delete an item by id', description: 'Delete an item by id' })
-  @ApiParam({ name: 'id', description: 'Item Id', type: 'number' })
-  @ApiSecurity('jwt')
-  @ApiResponse({ status: 200, description: 'Item deleted successfully.' })
   @ApiUnauthorizedResponse({
     description: 'Unauthorized',
     schema: {
@@ -260,26 +235,80 @@ export class ItemsController {
     },
   })
   @ApiNotFoundResponse({
-    description: 'Not Found',
+    description: 'Product not found',
     schema: {
       example: {
         statusCode: 404,
-        message: 'Not Found',
+        message: 'Product not found',
         error: 'Not Found',
       },
     },
   })
   @ApiInternalServerErrorResponse({
-    description: 'Internal Server Error',
+    description: 'Internal server error',
     schema: {
       example: {
         statusCode: 500,
-        message: 'Internal Server Error',
+        message: 'Internal server error',
+        error: 'Internal Server Error',
+      },
+    },
+  })
+  update(
+    @Param('id') id: string,
+    @Body() updateProductDto: UpdateProductDto,
+    @GetUser('id') userId: number,
+  ) {
+    return this.productsService.update(+id, updateProductDto, userId);
+  }
+
+  @Delete(':id')
+  @Roles(Role.SuperAdmin, Role.Admin)
+  @ApiOperation({ summary: 'Delete a product', description: 'Delete a product' })
+  @ApiParam({ name: 'id', description: 'Product id', type: 'number' })
+  @ApiSecurity('jwt')
+  @ApiResponse({ status: 200, description: 'Delete a product' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+    schema: {
+      example: {
+        statusCode: 401,
+        message: 'Unauthorized',
+        error: 'Unauthorized',
+      },
+    },
+  })
+  @ApiForbiddenResponse({
+    description: 'Forbidden',
+    schema: {
+      example: {
+        statusCode: 403,
+        message: 'Forbidden',
+        error: 'Forbidden',
+      },
+    },
+  })
+  @ApiNotFoundResponse({
+    description: 'Product not found',
+    schema: {
+      example: {
+        statusCode: 404,
+        message: 'Product not found',
+        error: 'Not Found',
+      },
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Internal server error',
+    schema: {
+      example: {
+        statusCode: 500,
+        message: 'Internal server error',
         error: 'Internal Server Error',
       },
     },
   })
   remove(@Param('id') id: string) {
-    return this.itemsService.remove(+id);
+    return this.productsService.remove(+id);
   }
 }

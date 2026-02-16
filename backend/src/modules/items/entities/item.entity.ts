@@ -1,9 +1,13 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Product } from 'src/modules/products/entities/product.entity';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 
 @Entity({ name: 'items' })
 export class Item {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @OneToMany(() => Product, (product) => product.item)
+  products: Product[];
 
   @Column({ nullable: false })
   name: string;
@@ -17,7 +21,7 @@ export class Item {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
   updated_at: Date;
 
   @Column({ nullable: false })
