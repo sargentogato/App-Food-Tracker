@@ -68,6 +68,7 @@ export class ItemsService {
         .orderBy('items.created_at', 'ASC')
         .skip(offset)
         .take(limit)
+        .orderBy('items.name', 'ASC')
         .getManyAndCount();
     } catch (error: unknown) {
       return handleDbError(error, 'fetch filtered items');

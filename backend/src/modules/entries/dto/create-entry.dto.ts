@@ -18,7 +18,7 @@ export class CreateEntryDto {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => EntryProductDto)
-  items: EntryProductDto[];
+  products: EntryProductDto[];
 
   @IsDate()
   @Type(() => Date)
