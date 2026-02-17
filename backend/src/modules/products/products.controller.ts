@@ -17,6 +17,7 @@ import { FilterQueryProductsDto } from './dto/filter-query-products.dto';
 import {
   ApiBadRequestResponse,
   ApiBody,
+  ApiCookieAuth,
   ApiForbiddenResponse,
   ApiInternalServerErrorResponse,
   ApiNotFoundResponse,
@@ -24,7 +25,6 @@ import {
   ApiParam,
   ApiQuery,
   ApiResponse,
-  ApiSecurity,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -43,7 +43,7 @@ export class ProductsController {
   @Roles(Role.SuperAdmin, Role.Admin)
   @ApiOperation({ summary: 'Create a new product', description: 'Create a new product' })
   @ApiBody({ type: CreateProductDto })
-  @ApiSecurity('jwt')
+  @ApiCookieAuth('auth-cookie')
   @ApiResponse({
     status: 201,
     description: 'The product has been successfully created.',
@@ -198,7 +198,7 @@ export class ProductsController {
   @ApiOperation({ summary: 'Update a product', description: 'Update a product' })
   @ApiParam({ name: 'id', description: 'Product id', type: 'number' })
   @ApiBody({ type: UpdateProductDto })
-  @ApiSecurity('jwt')
+  @ApiCookieAuth('auth-cookie')
   @ApiResponse({
     status: 200,
     description: 'Update a product',
@@ -266,7 +266,7 @@ export class ProductsController {
   @Roles(Role.SuperAdmin, Role.Admin)
   @ApiOperation({ summary: 'Delete a product', description: 'Delete a product' })
   @ApiParam({ name: 'id', description: 'Product id', type: 'number' })
-  @ApiSecurity('jwt')
+  @ApiCookieAuth('auth-cookie')
   @ApiResponse({ status: 200, description: 'Delete a product' })
   @ApiUnauthorizedResponse({
     description: 'Unauthorized',
