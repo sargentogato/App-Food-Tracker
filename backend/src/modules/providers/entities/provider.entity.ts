@@ -1,4 +1,5 @@
-import { PrimaryGeneratedColumn, Column, Entity } from 'typeorm';
+import { Entry } from 'src/modules/entries/entities/entry.entity';
+import { PrimaryGeneratedColumn, Column, Entity, OneToMany } from 'typeorm';
 
 @Entity({ name: 'providers' })
 export class Provider {
@@ -19,6 +20,9 @@ export class Provider {
 
   @Column({ default: '' })
   address: string;
+
+  @OneToMany(() => Entry, (entry) => entry.provider)
+  entries: Entry[];
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
