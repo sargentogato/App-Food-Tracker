@@ -13,6 +13,7 @@ import { ClientsModule } from './modules/clients/clients.module';
 import { ProvidersModule } from './modules/providers/providers.module';
 import { ProductsModule } from './modules/products/products.module';
 import { EntriesModule } from './modules/entries/entries.module';
+import { DeliveriesModule } from './modules/deliveries/deliveries.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { EntriesModule } from './modules/entries/entries.module';
     ProvidersModule,
     ProductsModule,
     EntriesModule,
+    DeliveriesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

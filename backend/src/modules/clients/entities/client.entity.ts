@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Delivery } from 'src/modules/deliveries/entities/delivery.entity';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'clients' })
 export class Client {
@@ -10,6 +11,9 @@ export class Client {
 
   @Column()
   contactName: string;
+
+  @OneToMany(() => Delivery, (delivery) => delivery.client)
+  deliveries: Delivery[];
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
