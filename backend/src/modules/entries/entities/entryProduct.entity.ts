@@ -13,6 +13,6 @@ export class EntryProduct {
   @ManyToOne(() => Entry, (entry) => entry.details, { onDelete: 'CASCADE' })
   entry: Entry;
 
-  @ManyToOne(() => Product, (product) => product.entryDetails)
+  @ManyToOne(() => Product, (product) => product.entryDetails) // Aquí apunta a entryDetails
   product: Product;
 }

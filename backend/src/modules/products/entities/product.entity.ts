@@ -35,8 +35,6 @@ export class Product {
   @Column({ nullable: false })
   updated_by: number;
 
-  @OneToMany(() => EntryProduct, (entryProduct) => entryProduct.entry, {
-    cascade: true,
-  })
+  @OneToMany(() => EntryProduct, (entryProduct) => entryProduct.product) // CORREGIDO: antes decía entryProduct.entry
   entryDetails: EntryProduct[];
 }

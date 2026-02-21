@@ -19,6 +19,8 @@ export class EntriesService {
   constructor(
     @InjectRepository(Entry)
     private readonly entryRepository: Repository<Entry>,
+    @InjectRepository(EntryProduct)
+    private readonly entryProductRepository: Repository<EntryProduct>,
 
     private dataSource: DataSource,
   ) {}
@@ -79,11 +81,10 @@ export class EntriesService {
     try {
       entry = await this.entryRepository
         .createQueryBuilder('entry')
-        .innerJoinAndSelect('entry.provider', 'provider')
-        .innerJoinAndSelect('entry.details', 'details')
-        .innerJoinAndSelect('details.product', 'product')
+        .leftJoinAndSelect('entry.provider', 'provider')
+        .leftJoinAndSelect('entry.details', 'details')
+        .leftJoinAndSelect('details.product', 'product')
         .where('entry.id = :id', { id })
-        .orderBy('entry.createdAt', 'DESC')
         .getOne();
     } catch (error: unknown) {
       return handleDbError(error, `fetch entry with id ${id}`);
@@ -120,7 +121,11 @@ export class EntriesService {
     try {
       const entry = await queryRunner.manager.findOne(Entry, {
         where: { id },
-        relations: { details: true },
+        relations: {
+          details: {
+            product: true,
+          },
+        },
       });
 
       if (!entry) throw new NotFoundException(`Entry with id ${id} not found`);
@@ -178,7 +183,11 @@ export class EntriesService {
       await queryRunner.manager.increment(Product, { id: productId }, 'quantity', quantity);
 
       await queryRunner.commitTransaction();
-      return savedDetail;
+
+      return await this.entryProductRepository.findOne({
+        where: { id: savedDetail.id },
+        relations: { product: true },
+      });
     } catch (err) {
       await queryRunner.rollbackTransaction();
       throw new InternalServerErrorException('Error sdding detail: ' + err);
@@ -220,7 +229,11 @@ export class EntriesService {
       }
 
       await queryRunner.commitTransaction();
-      return detail;
+
+      return await this.entryProductRepository.findOne({
+        where: { id: detailId },
+        relations: { product: true },
+      });
     } catch (err) {
       await queryRunner.rollbackTransaction();
 
