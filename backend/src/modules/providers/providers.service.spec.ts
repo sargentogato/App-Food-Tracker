@@ -67,7 +67,7 @@ describe('ProvidersService', () => {
 
   describe('findAll', () => {
     it('must return an array of Providers', async () => {
-      const Providers: Provider[] = [
+      const Providers = [
         {
           id: 1,
           name: 'Provider 1',
@@ -92,7 +92,7 @@ describe('ProvidersService', () => {
           created_by: 1,
           updated_by: 1,
         },
-      ];
+      ] as Provider[];
 
       repository.find!.mockResolvedValue(Providers);
 

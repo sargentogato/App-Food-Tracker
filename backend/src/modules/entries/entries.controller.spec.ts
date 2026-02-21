@@ -3,8 +3,7 @@ import { EntriesController } from './entries.controller';
 import { EntriesService } from './entries.service';
 import { CreateEntryDto } from './dto/create-entry.dto';
 import { UpdateEntryDto } from './dto/update-entry.dto';
-import { ConfigService } from '@nestjs/config';
-import { Reflector } from '@nestjs/core';
+import { RolesGuard } from 'src/core/guards/roles.guard';
 
 describe('EntriesController', () => {
   let controller: EntriesController;
@@ -30,20 +29,11 @@ describe('EntriesController', () => {
           provide: EntriesService,
           useValue: mockEntriesService,
         },
-        {
-          provide: ConfigService,
-          useValue: {
-            get: jest.fn(),
-          },
-        },
-        {
-          provide: Reflector,
-          useValue: {
-            getAllAndOverride: jest.fn(),
-          },
-        },
       ],
-    }).compile();
+    })
+      .overrideGuard(RolesGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<EntriesController>(EntriesController);
     service = module.get<EntriesService>(EntriesService);

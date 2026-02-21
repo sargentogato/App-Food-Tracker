@@ -78,7 +78,7 @@ describe('ProductsService', () => {
 
   describe('findAll', () => {
     it('must return an array of Products', async () => {
-      const Products: Product[] = [
+      const Products = [
         {
           id: 1,
           item: { id: 1, name: 'Item 1', created_by: 1 } as Item,
@@ -103,7 +103,7 @@ describe('ProductsService', () => {
           created_by: 1,
           updated_by: 1,
         },
-      ];
+      ] as Product[];
 
       repository.find!.mockResolvedValue(Products);
 
