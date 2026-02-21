@@ -1,7 +1,12 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateEntryDto } from './dto/create-entry.dto';
 import { UpdateEntryDto } from './dto/update-entry.dto';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, EntityManager, Repository } from 'typeorm';
 import { Entry } from './entities/entry.entity';
 import { EntryProduct } from './entities/entryProduct.entity';
 import { Product } from '../products/entities/product.entity';
@@ -90,12 +95,184 @@ export class EntriesService {
     return entry;
   }
 
-  update(id: number, updateEntryDto: UpdateEntryDto) {
-    console.log(updateEntryDto);
-    return `This action updates a #${id} entry`;
+  async updateHeader(id: number, updateEntryDto: UpdateEntryDto, userId: number) {
+    const entry = await this.entryRepository.preload({
+      id: id,
+      ...updateEntryDto,
+      updatedBy: userId,
+    });
+
+    if (!entry) throw new NotFoundException(`Entry #${id} not found`);
+
+    try {
+      return await this.entryRepository.save(entry);
+    } catch (error) {
+      handleDbError(error, 'update entry header');
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} entry`;
+  async remove(id: number) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const entry = await queryRunner.manager.findOne(Entry, {
+        where: { id },
+        relations: { details: true },
+      });
+
+      if (!entry) throw new NotFoundException(`Entry with id ${id} not found`);
+
+      for (const detail of entry.details) {
+        await this.checkStockAvailability(queryRunner.manager, detail.product.id, detail.quantity);
+      }
+
+      for (const detail of entry.details) {
+        await queryRunner.manager.decrement(
+          Product,
+          { id: detail.product.id },
+          'quantity',
+          detail.quantity,
+        );
+      }
+
+      await queryRunner.manager.remove(Entry, entry);
+
+      await queryRunner.commitTransaction();
+      return { deleted: true, id };
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException('Error eliminando la entrada: ' + err);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  /*
+    Details actions
+  */
+
+  async addDetail(entryId: number, productId: number, quantity: number) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const entry = await queryRunner.manager.findOne(Entry, { where: { id: entryId } });
+      if (!entry) throw new NotFoundException(`Entry #${entryId} not found`);
+
+      const newDetail = queryRunner.manager.create(EntryProduct, {
+        entry: { id: entryId },
+        product: { id: productId },
+        quantity: quantity,
+      });
+      const savedDetail = await queryRunner.manager.save(newDetail);
+
+      await queryRunner.manager.increment(Product, { id: productId }, 'quantity', quantity);
+
+      await queryRunner.commitTransaction();
+      return savedDetail;
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException('Error sdding detail: ' + err);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async updateDetail(detailId: number, quantity: number) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const detail = await queryRunner.manager.findOne(EntryProduct, {
+        where: { id: detailId },
+        relations: { product: true },
+      });
+
+      if (!detail) throw new NotFoundException('Detail not found');
+
+      const delta = quantity - detail.quantity;
+
+      detail.quantity = quantity;
+      await queryRunner.manager.save(detail);
+
+      if (delta > 0) {
+        await queryRunner.manager.increment(Product, { id: detail.product.id }, 'quantity', delta);
+      } else if (delta < 0) {
+        const amountToSubtract = Math.abs(delta);
+        await this.checkStockAvailability(queryRunner.manager, detail.product.id, amountToSubtract);
+
+        await queryRunner.manager.decrement(
+          Product,
+          { id: detail.product.id },
+          'quantity',
+          amountToSubtract,
+        );
+      }
+
+      await queryRunner.commitTransaction();
+      return detail;
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException(err);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async removeDetail(detailId: number) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const detail = await queryRunner.manager.findOne(EntryProduct, {
+        where: { id: detailId },
+        relations: { product: true },
+      });
+
+      if (!detail) throw new NotFoundException('Detail not found');
+
+      await this.checkStockAvailability(queryRunner.manager, detail.product.id, detail.quantity);
+
+      await queryRunner.manager.decrement(
+        Product,
+        { id: detail.product.id },
+        'quantity',
+        detail.quantity,
+      );
+
+      await queryRunner.manager.remove(detail);
+
+      await queryRunner.commitTransaction();
+      return { ok: true };
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException(err);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  private async checkStockAvailability(
+    manager: EntityManager,
+    productId: number,
+    quantityToSubtract: number,
+  ) {
+    const product = await manager.findOne(Product, { where: { id: productId } });
+
+    if (!product) {
+      throw new NotFoundException(`Product #${productId} not found`);
+    }
+
+    if (product.quantity < quantityToSubtract) {
+      throw new BadRequestException(
+        `Operation denied: Stock of ${product.item.name} (${product.quantity}) ` +
+          `is less than ${quantityToSubtract} required.`,
+      );
+    }
   }
 }

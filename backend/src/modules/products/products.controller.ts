@@ -93,7 +93,7 @@ export class ProductsController {
     return this.productsService.create(createProductDto, userId);
   }
 
-  @Get('get/all')
+  @Get('get-all')
   @ApiOperation({ summary: 'Get all products', description: 'Get all products' })
   @ApiResponse({
     status: 200,

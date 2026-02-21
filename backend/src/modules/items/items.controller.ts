@@ -92,7 +92,7 @@ export class ItemsController {
     return this.itemsService.create(createItemDto, userId);
   }
 
-  @Get('get/all')
+  @Get('get-all')
   @ApiOperation({ summary: 'Get all items', description: 'Get all items' })
   @ApiResponse({ status: 200, description: 'Items obtained successfully', type: [Item] })
   @ApiInternalServerErrorResponse({

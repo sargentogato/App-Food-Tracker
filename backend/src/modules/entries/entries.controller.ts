@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { EntriesService } from './entries.service';
 import { CreateEntryDto } from './dto/create-entry.dto';
 import { UpdateEntryDto } from './dto/update-entry.dto';
@@ -18,23 +28,50 @@ export class EntriesController {
     return this.entriesService.create(createEntryDto, userId);
   }
 
-  @Get()
+  @Get('')
   findAll() {
     return this.entriesService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.entriesService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.entriesService.findOne(id);
   }
-
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateEntryDto: UpdateEntryDto) {
-    return this.entriesService.update(+id, updateEntryDto);
+  updateHeader(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateEntryDto: UpdateEntryDto,
+    @GetUser('id') userId: number,
+  ) {
+    return this.entriesService.updateHeader(id, updateEntryDto, userId);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.entriesService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.entriesService.remove(id);
+  }
+
+  // --- MÉTODOS DE LOS DETALLES (ENTRY PRODUCTS) ---
+
+  @Post(':id/details')
+  addDetail(
+    @Param('id', ParseIntPipe) entryId: number,
+    @Body('productId', ParseIntPipe) productId: number,
+    @Body('quantity', ParseIntPipe) quantity: number,
+  ) {
+    return this.entriesService.addDetail(entryId, productId, quantity);
+  }
+
+  @Patch('details/:detailId')
+  updateDetail(
+    @Param('detailId', ParseIntPipe) detailId: number,
+    @Body('quantity', ParseIntPipe) quantity: number,
+  ) {
+    return this.entriesService.updateDetail(detailId, quantity);
+  }
+
+  @Delete('details/:detailId')
+  removeDetail(@Param('detailId', ParseIntPipe) detailId: number) {
+    return this.entriesService.removeDetail(detailId);
   }
 }
