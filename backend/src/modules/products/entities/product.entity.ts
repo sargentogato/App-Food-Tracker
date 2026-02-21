@@ -1,5 +1,6 @@
+import { EntryProduct } from 'src/modules/entries/entities/entryProduct.entity';
 import { Item } from 'src/modules/items/entities/item.entity';
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'products' })
 export class Product {
@@ -33,4 +34,7 @@ export class Product {
 
   @Column({ nullable: false })
   updated_by: number;
+
+  @OneToMany(() => EntryProduct, (entryProduct) => entryProduct.product) // CORREGIDO: antes decía entryProduct.entry
+  entryDetails: EntryProduct[];
 }

@@ -16,13 +16,13 @@ import { Item } from './entities/item.entity';
 import {
   ApiBadRequestResponse,
   ApiBody,
+  ApiCookieAuth,
   ApiForbiddenResponse,
   ApiInternalServerErrorResponse,
   ApiNotFoundResponse,
   ApiOperation,
   ApiParam,
   ApiResponse,
-  ApiSecurity,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -42,7 +42,7 @@ export class ItemsController {
   @Roles(Role.SuperAdmin, Role.Admin)
   @ApiOperation({ summary: 'Create a new item', description: 'Create a new item' })
   @ApiBody({ type: CreateItemDto })
-  @ApiSecurity('jwt')
+  @ApiCookieAuth('auth-cookie')
   @ApiResponse({
     status: 201,
     description: 'Item created successfully',
@@ -92,7 +92,7 @@ export class ItemsController {
     return this.itemsService.create(createItemDto, userId);
   }
 
-  @Get('get/all')
+  @Get('get-all')
   @ApiOperation({ summary: 'Get all items', description: 'Get all items' })
   @ApiResponse({ status: 200, description: 'Items obtained successfully', type: [Item] })
   @ApiInternalServerErrorResponse({
@@ -183,7 +183,7 @@ export class ItemsController {
   @ApiOperation({ summary: 'Update an item by id', description: 'Update an item by id' })
   @ApiParam({ name: 'id', description: 'Item Id', type: 'number' })
   @ApiBody({ type: UpdateItemDto })
-  @ApiSecurity('jwt')
+  @ApiCookieAuth('auth-cookie')
   @ApiResponse({ status: 200, description: 'Item updated successfully', type: Item })
   @ApiBadRequestResponse({
     description: 'Bad Request',
@@ -237,7 +237,7 @@ export class ItemsController {
   @Roles(Role.SuperAdmin, Role.Admin)
   @ApiOperation({ summary: 'Delete an item by id', description: 'Delete an item by id' })
   @ApiParam({ name: 'id', description: 'Item Id', type: 'number' })
-  @ApiSecurity('jwt')
+  @ApiCookieAuth('auth-cookie')
   @ApiResponse({ status: 200, description: 'Item deleted successfully.' })
   @ApiUnauthorizedResponse({
     description: 'Unauthorized',

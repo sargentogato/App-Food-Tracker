@@ -22,13 +22,13 @@ import { ConfigService } from '@nestjs/config';
 import {
   ApiBadRequestResponse,
   ApiBody,
+  ApiCookieAuth,
   ApiForbiddenResponse,
   ApiInternalServerErrorResponse,
   ApiNotFoundResponse,
   ApiOperation,
   ApiParam,
   ApiResponse,
-  ApiSecurity,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -45,7 +45,7 @@ export class UserController {
   @Roles(Role.SuperAdmin)
   @ApiOperation({ summary: 'Create a new user', description: 'Create a new user' })
   @ApiBody({ type: CreateUserDto })
-  @ApiSecurity('jwt')
+  @ApiCookieAuth('auth-cookie')
   @ApiResponse({ status: 201, description: 'User created successfully', type: User })
   @ApiBadRequestResponse({
     description: 'Bad Request',
@@ -97,7 +97,7 @@ export class UserController {
     summary: 'Get all users',
     description: 'Get all users',
   })
-  @ApiSecurity('jwt')
+  @ApiCookieAuth('auth-cookie')
   @ApiResponse({ status: 200, description: 'Users obtained successfully', type: [User] })
   @ApiUnauthorizedResponse({
     description: 'Unauthorized',
@@ -139,7 +139,7 @@ export class UserController {
     summary: 'Get user by id',
     description: 'Get user by id',
   })
-  @ApiSecurity('jwt')
+  @ApiCookieAuth('auth-cookie')
   @ApiParam({ name: 'id', description: 'User Id', type: 'number' })
   @ApiResponse({ status: 200, description: 'User obtained successfully', type: User })
   @ApiUnauthorizedResponse({
@@ -192,7 +192,7 @@ export class UserController {
     summary: 'Update a user by id',
     description: 'Update a user by id',
   })
-  @ApiSecurity('jwt')
+  @ApiCookieAuth('auth-cookie')
   @ApiParam({ name: 'id', description: 'User Id', type: 'number' })
   @ApiResponse({ status: 200, description: 'User updated successfully', type: User })
   @ApiBadRequestResponse({
@@ -272,7 +272,7 @@ export class UserController {
     summary: 'Delete a user by id',
     description: 'Delete a user by id',
   })
-  @ApiSecurity('jwt')
+  @ApiCookieAuth('auth-cookie')
   @ApiParam({ name: 'id', description: 'User Id', type: 'number' })
   @ApiResponse({ status: 200, description: 'User deleted successfully' })
   @ApiUnauthorizedResponse({

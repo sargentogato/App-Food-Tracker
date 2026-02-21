@@ -21,6 +21,12 @@ async function bootstrap() {
     .setTitle('Food Tracker API')
     .setDescription('The Food Tracker API documentation')
     .setVersion('1.0')
+    .addCookieAuth('auth-cookie', {
+      type: 'apiKey',
+      in: 'cookie',
+      name: 'jwt',
+      description: 'Insert JWT token in cookie',
+    })
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
