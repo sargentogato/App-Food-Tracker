@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  HttpException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -143,7 +144,12 @@ export class EntriesService {
       return { deleted: true, id };
     } catch (err) {
       await queryRunner.rollbackTransaction();
-      throw new InternalServerErrorException('Error eliminando la entrada: ' + err);
+
+      if (err instanceof HttpException) {
+        throw err;
+      }
+
+      throw new InternalServerErrorException('Error deleting entry: ' + err);
     } finally {
       await queryRunner.release();
     }
@@ -217,6 +223,11 @@ export class EntriesService {
       return detail;
     } catch (err) {
       await queryRunner.rollbackTransaction();
+
+      if (err instanceof HttpException) {
+        throw err;
+      }
+
       throw new InternalServerErrorException(err);
     } finally {
       await queryRunner.release();
@@ -251,6 +262,11 @@ export class EntriesService {
       return { ok: true };
     } catch (err) {
       await queryRunner.rollbackTransaction();
+
+      if (err instanceof HttpException) {
+        throw err;
+      }
+
       throw new InternalServerErrorException(err);
     } finally {
       await queryRunner.release();
@@ -262,15 +278,19 @@ export class EntriesService {
     productId: number,
     quantityToSubtract: number,
   ) {
-    const product = await manager.findOne(Product, { where: { id: productId } });
+    const product = await manager.findOne(Product, {
+      where: { id: productId },
+      relations: { item: true },
+    });
 
     if (!product) {
       throw new NotFoundException(`Product #${productId} not found`);
     }
 
+    const itemName = product.item?.name || 'Producto sin nombre';
     if (product.quantity < quantityToSubtract) {
       throw new BadRequestException(
-        `Operation denied: Stock of ${product.item.name} (${product.quantity}) ` +
+        `Operation denied: Stock of ${itemName} (${product.quantity}) ` +
           `is less than ${quantityToSubtract} required.`,
       );
     }
