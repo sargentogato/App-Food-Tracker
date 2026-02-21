@@ -206,7 +206,6 @@ export class EntriesService {
         where: { id: detailId },
         relations: { product: true },
       });
-
       if (!detail) throw new NotFoundException('Detail not found');
 
       const delta = quantity - detail.quantity;
@@ -285,6 +284,10 @@ export class EntriesService {
       await queryRunner.release();
     }
   }
+
+  /*
+    Private methods
+  */
 
   private async checkStockAvailability(
     manager: EntityManager,

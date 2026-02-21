@@ -1,7 +1,7 @@
 import { Type } from 'class-transformer';
 import { IsArray, IsDate, IsInt, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
 
-class DeliveryProductDTO {
+class DeliveryProductDto {
   @IsInt()
   product_id: number;
 
@@ -10,15 +10,15 @@ class DeliveryProductDTO {
   quantity: number;
 }
 
-export class CreateDeliveryDTO {
+export class CreateDeliveryDto {
   @IsString()
   @IsOptional()
   observation?: string;
 
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => DeliveryProductDTO)
-  products?: DeliveryProductDTO[];
+  @Type(() => DeliveryProductDto)
+  products: DeliveryProductDto[];
 
   @IsDate()
   @Type(() => Date)

@@ -92,7 +92,7 @@ export class EntriesController {
     return this.entriesService.create(createEntryDto, userId);
   }
 
-  @Get('')
+  @Get()
   @ApiOperation({ summary: 'Get all entries', description: 'Get all entries' })
   @ApiResponse({
     status: 200,
@@ -115,7 +115,7 @@ export class EntriesController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get one entry', description: 'Get one entry' })
-  @ApiParam({ name: 'id', description: 'Entry Id', type: Number })
+  @ApiParam({ name: 'id', description: 'Entry Id', type: Number, required: true })
   @ApiResponse({
     status: 200,
     description: 'One entry',
@@ -189,6 +189,16 @@ export class EntriesController {
       },
     },
   })
+  @ApiNotFoundResponse({
+    description: 'Not Found',
+    schema: {
+      example: {
+        statusCode: 404,
+        message: 'Not Found',
+        error: 'Not Found',
+      },
+    },
+  })
   @ApiInternalServerErrorResponse({
     description: 'Internal Server Error',
     schema: {
@@ -219,17 +229,6 @@ export class EntriesController {
   @ApiResponse({
     status: 200,
     description: 'The entry has been successfully deleted.',
-    type: Entry,
-  })
-  @ApiBadRequestResponse({
-    description: 'Bad Request',
-    schema: {
-      example: {
-        statusCode: 400,
-        message: 'Bad Request',
-        error: 'Bad Request',
-      },
-    },
   })
   @ApiUnauthorizedResponse({
     description: 'Unauthorized',
@@ -248,6 +247,16 @@ export class EntriesController {
         statusCode: 403,
         message: 'Forbidden',
         error: 'Forbidden',
+      },
+    },
+  })
+  @ApiNotFoundResponse({
+    description: 'Not Found',
+    schema: {
+      example: {
+        statusCode: 404,
+        message: 'Not Found',
+        error: 'Not Found',
       },
     },
   })

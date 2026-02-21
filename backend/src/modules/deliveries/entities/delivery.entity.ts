@@ -1,7 +1,15 @@
-import { PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, OneToMany } from 'typeorm';
+import {
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+  OneToMany,
+  Entity,
+} from 'typeorm';
 import { DeliveryProduct } from './deliveryProduct.entity';
 import { Client } from 'src/modules/clients/entities/client.entity';
 
+@Entity({ name: 'deliveries' })
 export class Delivery {
   @PrimaryGeneratedColumn()
   id: number;
