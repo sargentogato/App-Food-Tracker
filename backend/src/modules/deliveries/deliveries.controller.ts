@@ -280,8 +280,8 @@ export class DeliveriesController {
       },
     },
   })
-  remove(@Param('id') id: string) {
-    return this.deliveriesService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.deliveriesService.remove(id);
   }
 
   // --- MÉTODOS DE LOS DETALLES (DELIVERY PRODUCTS) ---
