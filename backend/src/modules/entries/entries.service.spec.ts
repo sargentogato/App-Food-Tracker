@@ -18,7 +18,6 @@ describe('EntriesService', () => {
 
   let mockQueryResult: any = null;
 
-  // Mocks de Repositorios
   const mockEntryRepository = {
     find: jest.fn(),
     findOne: jest.fn(),
@@ -35,7 +34,6 @@ describe('EntriesService', () => {
     findOne: jest.fn(),
   };
 
-  // Mock de QueryRunner para Transacciones
   const queryRunnerMock = {
     connect: jest.fn(),
     startTransaction: jest.fn(),
@@ -73,15 +71,15 @@ describe('EntriesService', () => {
     jest.clearAllMocks();
   });
 
-  // --- TESTS DE FUNCIONES PRINCIPALES ---
+  // --- ENTRIES TESTS ---
 
   describe('create', () => {
     it('must create an entry and his details', async () => {
       const dto = { products: [{ productId: 1, quantity: 10 }] };
       const userId = 1;
 
-      queryRunnerMock.manager.create.mockReturnValueOnce({ id: 100 }); // Entry
-      queryRunnerMock.manager.save.mockResolvedValueOnce({ id: 100 }); // Save Entry
+      queryRunnerMock.manager.create.mockReturnValueOnce({ id: 100 });
+      queryRunnerMock.manager.save.mockResolvedValueOnce({ id: 100 });
 
       const result = await service.create(dto as unknown as CreateEntryDto, userId);
 
@@ -123,7 +121,7 @@ describe('EntriesService', () => {
     });
 
     it('must throw NotFoundException if entry does not exist', async () => {
-      mockQueryResult = null; // Simulamos que no encontró nada
+      mockQueryResult = null;
 
       await expect(service.findOne(1)).rejects.toThrow(NotFoundException);
     });
@@ -149,7 +147,6 @@ describe('EntriesService', () => {
       };
       queryRunnerMock.manager.findOne.mockResolvedValue(mockEntry);
 
-      // Mock del stock check interno
       queryRunnerMock.manager.findOne.mockResolvedValueOnce(mockEntry); // find entry
       queryRunnerMock.manager.findOne.mockResolvedValueOnce({ id: 1, quantity: 20 }); // find product for stock check
 
