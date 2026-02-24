@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { DeliveriesService } from './deliveries.service';
 import { CreateDeliveryDto } from './dto/create-delivery.dto';
@@ -31,6 +32,7 @@ import { Roles } from 'src/core/decorators/roles.decorator';
 import { GetUser } from 'src/core/decorators/get-user.decorator';
 import { Delivery } from './entities/delivery.entity';
 import { DeliveryProduct } from './entities/deliveryProduct.entity';
+import { FilterQueryDeliveryDto } from './dto/filter-query-delivery.dto';
 
 @ApiTags('Deliveries')
 @Controller('deliveries')
@@ -96,7 +98,7 @@ export class DeliveriesController {
     return this.deliveriesService.create(createDeliveryDto, userId);
   }
 
-  @Get()
+  @Get('get/all')
   @ApiOperation({ summary: 'Get all deliveries', description: 'Get all deliveries' })
   @ApiResponse({
     status: 200,
@@ -147,6 +149,47 @@ export class DeliveriesController {
   })
   findOne(@Param('id') id: string) {
     return this.deliveriesService.findOne(+id);
+  }
+
+  @Get('')
+  @ApiOperation({ summary: 'Filter deliveries', description: 'Filter deliveries' })
+  @ApiResponse({
+    status: 200,
+    description: 'Deliveries obtained successfully',
+    schema: {
+      example: {
+        data: [Delivery],
+        meta: {
+          total: 0,
+          offset: 0,
+          limit: 0,
+          nextOffset: null,
+        },
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'Bad Request',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: 'Bad Request',
+        error: 'Bad Request',
+      },
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Internal Server Error',
+    schema: {
+      example: {
+        statusCode: 500,
+        message: 'Internal Server Error',
+        error: 'Internal Server Error',
+      },
+    },
+  })
+  filter(@Query() filterQueryDeliveryDto: FilterQueryDeliveryDto) {
+    return this.deliveriesService.filter(filterQueryDeliveryDto);
   }
 
   @Patch(':id')

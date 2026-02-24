@@ -13,6 +13,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DeliveryProduct } from './entities/deliveryProduct.entity';
 import { Product } from '../products/entities/product.entity';
 import { handleDbError } from 'src/core/utils/mysql-error-handler';
+import { FilterQueryDeliveryDto } from './dto/filter-query-delivery.dto';
+import { PaginationResult } from 'src/core/types/pagination-result';
 
 @Injectable()
 export class DeliveriesService {
@@ -69,7 +71,7 @@ export class DeliveriesService {
   findAll() {
     try {
       return this.deliveriesRepository.find({
-        relations: { client: true, details: { product: true } },
+        relations: { client: true, details: { product: { item: true } } },
         order: { createdAt: 'DESC' },
       });
     } catch (error: unknown) {
@@ -85,6 +87,7 @@ export class DeliveriesService {
         .leftJoinAndSelect('delivery.client', 'client')
         .leftJoinAndSelect('delivery.details', 'details')
         .leftJoinAndSelect('details.product', 'product')
+        .leftJoinAndSelect('product.item', 'item')
         .where('delivery.id = :id', { id })
         .getOne();
     } catch (error: unknown) {
@@ -96,6 +99,59 @@ export class DeliveriesService {
     }
 
     return delivery;
+  }
+
+  async filter(filterQueryEntryDto: FilterQueryDeliveryDto) {
+    const { dateStart, dateEnd, clientId, limit = 10, offset = 0 } = filterQueryEntryDto;
+
+    const queryBuilder = this.deliveriesRepository.createQueryBuilder('delivery');
+
+    queryBuilder
+      .leftJoinAndSelect('delivery.client', 'client')
+      .leftJoinAndSelect('delivery.details', 'details')
+      .leftJoinAndSelect('details.product', 'product')
+      .leftJoinAndSelect('product.item', 'item');
+
+    if (dateStart) {
+      queryBuilder.andWhere('delivery.created_at >= :dateStart', { dateStart });
+    }
+    if (dateEnd) {
+      queryBuilder.andWhere('delivery.created_at <= :dateEnd', { dateEnd });
+    }
+    if (clientId) {
+      queryBuilder.andWhere('delivery.client_id = :clientId', { clientId });
+    }
+
+    let deliveries: Delivery[];
+    let count: number;
+
+    try {
+      [deliveries, count] = await queryBuilder
+        .orderBy('delivery.created_at', 'ASC')
+        .skip(offset)
+        .take(limit)
+        .getManyAndCount();
+    } catch (error: unknown) {
+      return handleDbError(error, 'fetch filtered deliveries');
+    }
+
+    let newOffset = offset + limit;
+
+    if (newOffset > count) {
+      newOffset = count;
+    }
+
+    const result: PaginationResult<Delivery> = {
+      data: deliveries,
+      meta: {
+        total: count,
+        offset,
+        limit,
+        nextOffset: newOffset >= count ? null : newOffset,
+      },
+    };
+
+    return result;
   }
 
   async updateHeader(id: number, updateDeliveryDto: UpdateDeliveryDto, userId: number) {

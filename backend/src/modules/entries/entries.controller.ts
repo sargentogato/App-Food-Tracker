@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { EntriesService } from './entries.service';
 import { CreateEntryDto } from './dto/create-entry.dto';
@@ -31,6 +32,7 @@ import {
 } from '@nestjs/swagger';
 import { Entry } from './entities/entry.entity';
 import { EntryProduct } from './entities/entryProduct.entity';
+import { FilterQueryEntryDto } from './dto/filter-query-entry.dto';
 
 @ApiTags('Entries')
 @Controller('entries')
@@ -92,7 +94,7 @@ export class EntriesController {
     return this.entriesService.create(createEntryDto, userId);
   }
 
-  @Get()
+  @Get('get/all')
   @ApiOperation({ summary: 'Get all entries', description: 'Get all entries' })
   @ApiResponse({
     status: 200,
@@ -143,6 +145,47 @@ export class EntriesController {
   })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.entriesService.findOne(id);
+  }
+
+  @Get('')
+  @ApiOperation({ summary: 'Filter entries', description: 'Filter entries' })
+  @ApiResponse({
+    status: 200,
+    description: 'Entries obtained successfully',
+    schema: {
+      example: {
+        data: [Entry],
+        meta: {
+          total: 0,
+          offset: 0,
+          limit: 0,
+          nextOffset: null,
+        },
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'Bad Request',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: 'Bad Request',
+        error: 'Bad Request',
+      },
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Internal Server Error',
+    schema: {
+      example: {
+        statusCode: 500,
+        message: 'Internal Server Error',
+        error: 'Internal Server Error',
+      },
+    },
+  })
+  filter(@Query() filterQueryEntryDto: FilterQueryEntryDto) {
+    return this.entriesService.filter(filterQueryEntryDto);
   }
 
   @Patch(':id')

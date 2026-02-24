@@ -13,6 +13,8 @@ import { EntryProduct } from './entities/entryProduct.entity';
 import { Product } from '../products/entities/product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { handleDbError } from 'src/core/utils/mysql-error-handler';
+import { FilterQueryEntryDto } from './dto/filter-query-entry.dto';
+import { PaginationResult } from 'src/core/types/pagination-result';
 
 @Injectable()
 export class EntriesService {
@@ -68,7 +70,7 @@ export class EntriesService {
   findAll() {
     try {
       return this.entryRepository.find({
-        relations: { provider: true, details: { product: true } },
+        relations: { provider: true, details: { product: { item: true } } },
         order: { createdAt: 'DESC' },
       });
     } catch (error: unknown) {
@@ -84,6 +86,7 @@ export class EntriesService {
         .leftJoinAndSelect('entry.provider', 'provider')
         .leftJoinAndSelect('entry.details', 'details')
         .leftJoinAndSelect('details.product', 'product')
+        .leftJoinAndSelect('product.item', 'item')
         .where('entry.id = :id', { id })
         .getOne();
     } catch (error: unknown) {
@@ -95,6 +98,59 @@ export class EntriesService {
     }
 
     return entry;
+  }
+
+  async filter(filterQueryEntryDto: FilterQueryEntryDto) {
+    const { dateStart, dateEnd, providerId, limit = 10, offset = 0 } = filterQueryEntryDto;
+
+    const queryBuilder = this.entryRepository.createQueryBuilder('entry');
+
+    queryBuilder
+      .leftJoinAndSelect('entry.provider', 'provider')
+      .leftJoinAndSelect('entry.details', 'details')
+      .leftJoinAndSelect('details.product', 'product')
+      .leftJoinAndSelect('product.item', 'item');
+
+    if (dateStart) {
+      queryBuilder.andWhere('entry.created_at >= :dateStart', { dateStart });
+    }
+    if (dateEnd) {
+      queryBuilder.andWhere('entry.created_at <= :dateEnd', { dateEnd });
+    }
+    if (providerId) {
+      queryBuilder.andWhere('entry.provider_id = :providerId', { providerId });
+    }
+
+    let entries: Entry[];
+    let count: number;
+
+    try {
+      [entries, count] = await queryBuilder
+        .orderBy('entry.created_at', 'ASC')
+        .skip(offset)
+        .take(limit)
+        .getManyAndCount();
+    } catch (error: unknown) {
+      return handleDbError(error, 'fetch filtered entries');
+    }
+
+    let newOffset = offset + limit;
+
+    if (newOffset > count) {
+      newOffset = count;
+    }
+
+    const result: PaginationResult<Entry> = {
+      data: entries,
+      meta: {
+        total: count,
+        offset,
+        limit,
+        nextOffset: newOffset >= count ? null : newOffset,
+      },
+    };
+
+    return result;
   }
 
   async updateHeader(id: number, updateEntryDto: UpdateEntryDto, userId: number) {
