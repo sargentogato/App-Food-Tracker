@@ -82,12 +82,12 @@ export class EntriesService {
     let entry: Entry | null;
     try {
       entry = await this.entryRepository
-        .createQueryBuilder('entry')
-        .leftJoinAndSelect('entry.provider', 'provider')
-        .leftJoinAndSelect('entry.details', 'details')
-        .leftJoinAndSelect('details.product', 'product')
-        .leftJoinAndSelect('product.item', 'item')
-        .where('entry.id = :id', { id })
+        .createQueryBuilder('entries')
+        .leftJoinAndSelect('entries.provider', 'provider')
+        .leftJoinAndSelect('entries.details', 'entries_products')
+        .leftJoinAndSelect('entries_products.product', 'products')
+        .leftJoinAndSelect('products.item', 'item')
+        .where('entries.id = :id', { id })
         .getOne();
     } catch (error: unknown) {
       return handleDbError(error, `fetch entry with id ${id}`);
@@ -103,22 +103,22 @@ export class EntriesService {
   async filter(filterQueryEntryDto: FilterQueryEntryDto) {
     const { dateStart, dateEnd, providerId, limit = 10, offset = 0 } = filterQueryEntryDto;
 
-    const queryBuilder = this.entryRepository.createQueryBuilder('entry');
+    const queryBuilder = this.entryRepository.createQueryBuilder('entries');
 
     queryBuilder
-      .leftJoinAndSelect('entry.provider', 'provider')
-      .leftJoinAndSelect('entry.details', 'details')
-      .leftJoinAndSelect('details.product', 'product')
-      .leftJoinAndSelect('product.item', 'item');
+      .leftJoinAndSelect('entries.provider', 'providers')
+      .leftJoinAndSelect('entries.details', 'entries_products')
+      .leftJoinAndSelect('entries_products.product', 'products')
+      .leftJoinAndSelect('products.item', 'item');
 
     if (dateStart) {
-      queryBuilder.andWhere('entry.created_at >= :dateStart', { dateStart });
+      queryBuilder.andWhere('entries.createdAt >= :dateStart', { dateStart });
     }
     if (dateEnd) {
-      queryBuilder.andWhere('entry.created_at <= :dateEnd', { dateEnd });
+      queryBuilder.andWhere('entries.createdAt <= :dateEnd', { dateEnd });
     }
     if (providerId) {
-      queryBuilder.andWhere('entry.provider_id = :providerId', { providerId });
+      queryBuilder.andWhere('entries.provider = :providerId', { providerId });
     }
 
     let entries: Entry[];
@@ -126,7 +126,7 @@ export class EntriesService {
 
     try {
       [entries, count] = await queryBuilder
-        .orderBy('entry.created_at', 'ASC')
+        .orderBy('entries.createdAt', 'ASC')
         .skip(offset)
         .take(limit)
         .getManyAndCount();

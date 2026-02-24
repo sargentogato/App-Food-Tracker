@@ -83,12 +83,12 @@ export class DeliveriesService {
     let delivery: Delivery | null;
     try {
       delivery = await this.deliveriesRepository
-        .createQueryBuilder('delivery')
-        .leftJoinAndSelect('delivery.client', 'client')
-        .leftJoinAndSelect('delivery.details', 'details')
-        .leftJoinAndSelect('details.product', 'product')
-        .leftJoinAndSelect('product.item', 'item')
-        .where('delivery.id = :id', { id })
+        .createQueryBuilder('deliveries')
+        .leftJoinAndSelect('deliveries.client', 'client')
+        .leftJoinAndSelect('deliveries.details', 'deliveries_products')
+        .leftJoinAndSelect('deliveries_products.product', 'products')
+        .leftJoinAndSelect('products.item', 'item')
+        .where('deliveries.id = :id', { id })
         .getOne();
     } catch (error: unknown) {
       return handleDbError(error, `fetch delivery with id ${id}`);
@@ -104,22 +104,22 @@ export class DeliveriesService {
   async filter(filterQueryEntryDto: FilterQueryDeliveryDto) {
     const { dateStart, dateEnd, clientId, limit = 10, offset = 0 } = filterQueryEntryDto;
 
-    const queryBuilder = this.deliveriesRepository.createQueryBuilder('delivery');
+    const queryBuilder = this.deliveriesRepository.createQueryBuilder('deliveries');
 
     queryBuilder
-      .leftJoinAndSelect('delivery.client', 'client')
-      .leftJoinAndSelect('delivery.details', 'details')
-      .leftJoinAndSelect('details.product', 'product')
-      .leftJoinAndSelect('product.item', 'item');
+      .leftJoinAndSelect('deliveries.client', 'client')
+      .leftJoinAndSelect('deliveries.details', 'deliveries_products')
+      .leftJoinAndSelect('deliveries_products.product', 'products')
+      .leftJoinAndSelect('products.item', 'item');
 
     if (dateStart) {
-      queryBuilder.andWhere('delivery.created_at >= :dateStart', { dateStart });
+      queryBuilder.andWhere('deliveries.createdAt >= :dateStart', { dateStart });
     }
     if (dateEnd) {
-      queryBuilder.andWhere('delivery.created_at <= :dateEnd', { dateEnd });
+      queryBuilder.andWhere('deliveries.createdAt <= :dateEnd', { dateEnd });
     }
     if (clientId) {
-      queryBuilder.andWhere('delivery.client_id = :clientId', { clientId });
+      queryBuilder.andWhere('deliveries.client = :clientId', { clientId });
     }
 
     let deliveries: Delivery[];
@@ -127,7 +127,7 @@ export class DeliveriesService {
 
     try {
       [deliveries, count] = await queryBuilder
-        .orderBy('delivery.created_at', 'ASC')
+        .orderBy('deliveries.createdAt', 'ASC')
         .skip(offset)
         .take(limit)
         .getManyAndCount();
