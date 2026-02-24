@@ -1,3 +1,4 @@
+import { DeliveryProduct } from 'src/modules/deliveries/entities/deliveryProduct.entity';
 import { EntryProduct } from 'src/modules/entries/entities/entryProduct.entity';
 import { Item } from 'src/modules/items/entities/item.entity';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
@@ -37,4 +38,7 @@ export class Product {
 
   @OneToMany(() => EntryProduct, (entryProduct) => entryProduct.product) // CORREGIDO: antes decía entryProduct.entry
   entryDetails: EntryProduct[];
+
+  @OneToMany(() => DeliveryProduct, (deliveryProduct) => deliveryProduct.product) // CORREGIDO: antes decía deliveryProduct.delivery
+  deliveryDetails: DeliveryProduct[];
 }

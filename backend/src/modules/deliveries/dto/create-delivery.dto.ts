@@ -1,24 +1,24 @@
-import { IsArray, IsDate, IsInt, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
+import { IsArray, IsDate, IsInt, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
 
-class EntryProductDto {
+class DeliveryProductDto {
   @IsInt()
-  productId: number;
+  product_id: number;
 
   @IsInt()
   @Min(1, { message: 'Quantity must be greater than 0' })
   quantity: number;
 }
 
-export class CreateEntryDto {
+export class CreateDeliveryDto {
   @IsString()
   @IsOptional()
   observation?: string;
 
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => EntryProductDto)
-  products: EntryProductDto[];
+  @Type(() => DeliveryProductDto)
+  products: DeliveryProductDto[];
 
   @IsDate()
   @Type(() => Date)
@@ -26,5 +26,5 @@ export class CreateEntryDto {
 
   @IsInt()
   @Type(() => Number)
-  providerId: number;
+  clientId: number;
 }

@@ -58,7 +58,7 @@ describe('ClientsService', () => {
 
   describe('findAll', () => {
     it('must return an array of clients', async () => {
-      const clients: Client[] = [
+      const clients = [
         {
           id: 1,
           name: 'Client 1',
@@ -77,7 +77,7 @@ describe('ClientsService', () => {
           created_by: 1,
           updated_by: 1,
         },
-      ];
+      ] as Client[];
 
       repository.find!.mockResolvedValue(clients);
 

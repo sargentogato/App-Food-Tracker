@@ -10,13 +10,9 @@ import {
   ParseIntPipe,
   Query,
 } from '@nestjs/common';
-import { EntriesService } from './entries.service';
-import { CreateEntryDto } from './dto/create-entry.dto';
-import { UpdateEntryDto } from './dto/update-entry.dto';
-import { Role } from '../user/enums/role.enum';
-import { RolesGuard } from 'src/core/guards/roles.guard';
-import { Roles } from 'src/core/decorators/roles.decorator';
-import { GetUser } from 'src/core/decorators/get-user.decorator';
+import { DeliveriesService } from './deliveries.service';
+import { CreateDeliveryDto } from './dto/create-delivery.dto';
+import { UpdateDeliveryDto } from './dto/update-delivery.dto';
 import {
   ApiBadRequestResponse,
   ApiBody,
@@ -30,25 +26,33 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { Entry } from './entities/entry.entity';
-import { EntryProduct } from './entities/entryProduct.entity';
-import { FilterQueryEntryDto } from './dto/filter-query-entry.dto';
+import { RolesGuard } from 'src/core/guards/roles.guard';
+import { Role } from '../user/enums/role.enum';
+import { Roles } from 'src/core/decorators/roles.decorator';
+import { GetUser } from 'src/core/decorators/get-user.decorator';
+import { Delivery } from './entities/delivery.entity';
+import { DeliveryProduct } from './entities/deliveryProduct.entity';
+import { FilterQueryDeliveryDto } from './dto/filter-query-delivery.dto';
 
-@ApiTags('Entries')
-@Controller('entries')
+@ApiTags('Deliveries')
+@Controller('deliveries')
 @UseGuards(RolesGuard)
-export class EntriesController {
-  constructor(private readonly entriesService: EntriesService) {}
+export class DeliveriesController {
+  constructor(private readonly deliveriesService: DeliveriesService) {}
 
   @Post()
   @Roles(Role.SuperAdmin, Role.Admin)
-  @ApiOperation({ summary: 'Create a new entry', description: 'Create a new entry' })
-  @ApiBody({ type: CreateEntryDto })
+  @ApiOperation({
+    summary: 'Create delivery',
+    description:
+      'Create delivery. If stock of any product is not enough, the delivery will not be created.',
+  })
+  @ApiBody({ type: CreateDeliveryDto })
   @ApiCookieAuth('auth-cookie')
   @ApiResponse({
     status: 201,
-    description: 'The entry has been successfully created.',
-    type: Entry,
+    description: 'The delivery has been successfully created.',
+    type: CreateDeliveryDto,
   })
   @ApiBadRequestResponse({
     description: 'Bad Request',
@@ -90,16 +94,16 @@ export class EntriesController {
       },
     },
   })
-  create(@Body() createEntryDto: CreateEntryDto, @GetUser('id') userId: number) {
-    return this.entriesService.create(createEntryDto, userId);
+  create(@Body() createDeliveryDto: CreateDeliveryDto, @GetUser('id') userId: number) {
+    return this.deliveriesService.create(createDeliveryDto, userId);
   }
 
   @Get('get/all')
-  @ApiOperation({ summary: 'Get all entries', description: 'Get all entries' })
+  @ApiOperation({ summary: 'Get all deliveries', description: 'Get all deliveries' })
   @ApiResponse({
     status: 200,
-    description: 'All entries',
-    type: [Entry],
+    description: 'The deliveries have been successfully fetched.',
+    type: [CreateDeliveryDto],
   })
   @ApiInternalServerErrorResponse({
     description: 'Internal Server Error',
@@ -112,24 +116,24 @@ export class EntriesController {
     },
   })
   findAll() {
-    return this.entriesService.findAll();
+    return this.deliveriesService.findAll();
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get one entry', description: 'Get one entry' })
-  @ApiParam({ name: 'id', description: 'Entry Id', type: Number, required: true })
-  @ApiResponse({
-    status: 200,
-    description: 'One entry',
-    type: Entry,
+  @ApiOperation({ summary: 'Get delivery by id', description: 'Get delivery by id' })
+  @ApiParam({
+    name: 'id',
+    type: 'number',
+    description: 'Delivery id',
+    required: true,
   })
   @ApiNotFoundResponse({
-    description: 'Not Found',
+    description: 'Delivery not found',
     schema: {
       example: {
         statusCode: 404,
-        message: 'Not Found',
-        error: 'Not Found',
+        message: 'Delivery not found',
+        error: 'Delivery not found',
       },
     },
   })
@@ -143,18 +147,18 @@ export class EntriesController {
       },
     },
   })
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.entriesService.findOne(id);
+  findOne(@Param('id') id: string) {
+    return this.deliveriesService.findOne(+id);
   }
 
   @Get('')
-  @ApiOperation({ summary: 'Filter entries', description: 'Filter entries' })
+  @ApiOperation({ summary: 'Filter deliveries', description: 'Filter deliveries' })
   @ApiResponse({
     status: 200,
-    description: 'Entries obtained successfully',
+    description: 'Deliveries obtained successfully',
     schema: {
       example: {
-        data: [Entry],
+        data: [Delivery],
         meta: {
           total: 0,
           offset: 0,
@@ -184,23 +188,28 @@ export class EntriesController {
       },
     },
   })
-  filter(@Query() filterQueryEntryDto: FilterQueryEntryDto) {
-    return this.entriesService.filter(filterQueryEntryDto);
+  filter(@Query() filterQueryDeliveryDto: FilterQueryDeliveryDto) {
+    return this.deliveriesService.filter(filterQueryDeliveryDto);
   }
 
   @Patch(':id')
   @Roles(Role.SuperAdmin, Role.Admin)
   @ApiOperation({
-    summary: 'Update one entry',
-    description: 'Update one entry, only data of the header, not the details',
+    summary: 'Update delivery',
+    description: 'Update delivery, only data of the header will be updated',
   })
-  @ApiParam({ name: 'id', description: 'Entry Id', type: Number })
-  @ApiBody({ type: UpdateEntryDto })
+  @ApiParam({
+    name: 'id',
+    type: 'number',
+    description: 'Delivery id',
+    required: true,
+  })
+  @ApiBody({ type: UpdateDeliveryDto })
   @ApiCookieAuth('auth-cookie')
   @ApiResponse({
     status: 200,
-    description: 'The entry has been successfully updated.',
-    type: Entry,
+    description: 'The delivery has been successfully updated.',
+    type: Delivery,
   })
   @ApiBadRequestResponse({
     description: 'Bad Request',
@@ -233,12 +242,12 @@ export class EntriesController {
     },
   })
   @ApiNotFoundResponse({
-    description: 'Not Found',
+    description: 'Delivery not found',
     schema: {
       example: {
         statusCode: 404,
-        message: 'Not Found',
-        error: 'Not Found',
+        message: 'Delivery not found',
+        error: 'Delivery not found',
       },
     },
   })
@@ -254,24 +263,25 @@ export class EntriesController {
   })
   updateHeader(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateEntryDto: UpdateEntryDto,
+    @Body() updateDeliveryDto: UpdateDeliveryDto,
     @GetUser('id') userId: number,
   ) {
-    return this.entriesService.updateHeader(id, updateEntryDto, userId);
+    return this.deliveriesService.updateHeader(id, updateDeliveryDto, userId);
   }
 
   @Delete(':id')
   @Roles(Role.SuperAdmin, Role.Admin)
-  @ApiOperation({
-    summary: 'Delete one entry',
-    description:
-      'Delete one entry. If the stock of any product is not enough, the entry will not be deleted',
+  @ApiOperation({ summary: 'Delete delivery', description: 'Delete delivery' })
+  @ApiParam({
+    name: 'id',
+    type: 'number',
+    description: 'Delivery id',
+    required: true,
   })
-  @ApiParam({ name: 'id', description: 'Entry Id', type: Number })
   @ApiCookieAuth('auth-cookie')
   @ApiResponse({
     status: 200,
-    description: 'The entry has been successfully deleted.',
+    description: 'The delivery has been successfully deleted.',
   })
   @ApiUnauthorizedResponse({
     description: 'Unauthorized',
@@ -294,12 +304,12 @@ export class EntriesController {
     },
   })
   @ApiNotFoundResponse({
-    description: 'Not Found',
+    description: 'Delivery not found',
     schema: {
       example: {
         statusCode: 404,
-        message: 'Not Found',
-        error: 'Not Found',
+        message: 'Delivery not found',
+        error: 'Delivery not found',
       },
     },
   })
@@ -314,18 +324,19 @@ export class EntriesController {
     },
   })
   remove(@Param('id', ParseIntPipe) id: number) {
-    return this.entriesService.remove(id);
+    return this.deliveriesService.remove(id);
   }
 
-  // --- MÉTODOS DE LOS DETALLES (ENTRY PRODUCTS) ---
+  // --- MÉTODOS DE LOS DETALLES (DELIVERY PRODUCTS) ---
 
   @Post(':id/details')
   @Roles(Role.SuperAdmin, Role.Admin)
   @ApiOperation({
-    summary: 'Add a detail to an entry',
-    description: 'Add a detail to an entry',
+    summary: 'Add a detail to an delivery',
+    description:
+      'Add a detail to an delivery. If the stock of any product is not enough, the detail will not be removed',
   })
-  @ApiParam({ name: 'id', description: 'Entry Id', type: Number })
+  @ApiParam({ name: 'id', description: 'Delivery Id', type: Number })
   @ApiBody({
     schema: {
       type: 'object',
@@ -339,7 +350,7 @@ export class EntriesController {
   @ApiResponse({
     status: 200,
     description: 'The detail has been successfully added.',
-    type: EntryProduct,
+    type: DeliveryProduct,
   })
   @ApiBadRequestResponse({
     description: 'Bad Request',
@@ -382,19 +393,19 @@ export class EntriesController {
     },
   })
   addDetail(
-    @Param('id', ParseIntPipe) entryId: number,
+    @Param('id', ParseIntPipe) deliveryId: number,
     @Body('productId', ParseIntPipe) productId: number,
     @Body('quantity', ParseIntPipe) quantity: number,
   ) {
-    return this.entriesService.addDetail(entryId, productId, quantity);
+    return this.deliveriesService.addDetail(deliveryId, productId, quantity);
   }
 
   @Patch('details/:detailId')
   @Roles(Role.SuperAdmin, Role.Admin)
   @ApiOperation({
-    summary: 'Update a detail of an entry',
+    summary: 'Update a detail of an delivery',
     description:
-      'Update a detail of an entry. If the stock of any product is not enough, the detail will not be updated',
+      'Update a detail of an delivery. If the stock of any product is not enough, the detail will not be updated',
   })
   @ApiParam({ name: 'detailId', description: 'Detail Id', type: Number })
   @ApiBody({
@@ -409,7 +420,7 @@ export class EntriesController {
   @ApiResponse({
     status: 200,
     description: 'The detail has been successfully updated.',
-    type: EntryProduct,
+    type: DeliveryProduct,
   })
   @ApiBadRequestResponse({
     description: 'Bad Request',
@@ -455,15 +466,14 @@ export class EntriesController {
     @Param('detailId', ParseIntPipe) detailId: number,
     @Body('quantity', ParseIntPipe) quantity: number,
   ) {
-    return this.entriesService.updateDetail(detailId, quantity);
+    return this.deliveriesService.updateDetail(detailId, quantity);
   }
 
   @Delete('details/:detailId')
   @Roles(Role.SuperAdmin, Role.Admin)
   @ApiOperation({
-    summary: 'Remove a detail of an entry',
-    description:
-      'Remove a detail of an entry. If the stock of any product is not enough, the detail will not be removed',
+    summary: 'Remove a detail of an delivery',
+    description: 'Remove a detail of an delivery.',
   })
   @ApiParam({ name: 'detailId', description: 'Detail Id', type: Number })
   @ApiCookieAuth('auth-cookie')
@@ -513,6 +523,6 @@ export class EntriesController {
     },
   })
   removeDetail(@Param('detailId', ParseIntPipe) detailId: number) {
-    return this.entriesService.removeDetail(detailId);
+    return this.deliveriesService.removeDetail(detailId);
   }
 }

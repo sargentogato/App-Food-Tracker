@@ -1,17 +1,17 @@
 import {
-  Entity,
   PrimaryGeneratedColumn,
-  CreateDateColumn,
-  OneToMany,
   Column,
   ManyToOne,
+  CreateDateColumn,
+  OneToMany,
+  Entity,
   JoinColumn,
 } from 'typeorm';
-import { EntryProduct } from './entryProduct.entity';
-import { Provider } from 'src/modules/providers/entities/provider.entity';
+import { DeliveryProduct } from './deliveryProduct.entity';
+import { Client } from 'src/modules/clients/entities/client.entity';
 
-@Entity({ name: 'entries' })
-export class Entry {
+@Entity({ name: 'deliveries' })
+export class Delivery {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -21,12 +21,12 @@ export class Entry {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   date: Date;
 
-  @ManyToOne(() => Provider, (provider) => provider.entries)
-  @JoinColumn({ name: 'providerId' })
-  provider: Provider;
+  @ManyToOne(() => Client, (client) => client.deliveries)
+  @JoinColumn({ name: 'clientId' })
+  client: Client;
 
   @Column({ nullable: false })
-  providerId: number;
+  clientId: number;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -40,8 +40,8 @@ export class Entry {
   @Column({ nullable: false })
   updatedBy: number;
 
-  @OneToMany(() => EntryProduct, (entryProduct) => entryProduct.entry, {
+  @OneToMany(() => DeliveryProduct, (deliveryProduct) => deliveryProduct.delivery, {
     cascade: true,
   })
-  details: EntryProduct[];
+  details: DeliveryProduct[];
 }

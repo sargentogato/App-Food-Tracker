@@ -5,63 +5,64 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateEntryDto } from './dto/create-entry.dto';
-import { UpdateEntryDto } from './dto/update-entry.dto';
+import { CreateDeliveryDto } from './dto/create-delivery.dto';
+import { UpdateDeliveryDto } from './dto/update-delivery.dto';
 import { DataSource, EntityManager, Repository } from 'typeorm';
-import { Entry } from './entities/entry.entity';
-import { EntryProduct } from './entities/entryProduct.entity';
-import { Product } from '../products/entities/product.entity';
+import { Delivery } from './entities/delivery.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { DeliveryProduct } from './entities/deliveryProduct.entity';
+import { Product } from '../products/entities/product.entity';
 import { handleDbError } from 'src/core/utils/mysql-error-handler';
-import { FilterQueryEntryDto } from './dto/filter-query-entry.dto';
+import { FilterQueryDeliveryDto } from './dto/filter-query-delivery.dto';
 import { PaginationResult } from 'src/core/types/pagination-result';
 
 @Injectable()
-export class EntriesService {
+export class DeliveriesService {
   constructor(
-    @InjectRepository(Entry)
-    private readonly entryRepository: Repository<Entry>,
-    @InjectRepository(EntryProduct)
-    private readonly entryProductRepository: Repository<EntryProduct>,
+    @InjectRepository(Delivery)
+    private readonly deliveriesRepository: Repository<Delivery>,
+    @InjectRepository(DeliveryProduct)
+    private readonly deliveryProductRepository: Repository<DeliveryProduct>,
 
     private dataSource: DataSource,
   ) {}
 
-  async create(createEntryDto: CreateEntryDto, userId: number) {
+  async create(createDeliveryDto: CreateDeliveryDto, userId: number) {
     const queryRunner = this.dataSource.createQueryRunner();
-
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
-      const entry = queryRunner.manager.create(Entry, {
-        ...createEntryDto,
+      const delivery = queryRunner.manager.create(Delivery, {
+        ...createDeliveryDto,
         createdBy: userId,
         updatedBy: userId,
       });
-      const savedEntry = await queryRunner.manager.save(entry);
+      const savedDelivery = await queryRunner.manager.save(delivery);
 
-      for (const item of createEntryDto.products) {
-        const detail = queryRunner.manager.create(EntryProduct, {
-          entry: savedEntry,
-          product: { id: item.productId },
+      for (const item of createDeliveryDto.products) {
+        await this.checkStockAvailability(queryRunner.manager, item.product_id, item.quantity);
+
+        const detail = queryRunner.manager.create(DeliveryProduct, {
+          delivery: savedDelivery,
+          product: { id: item.product_id },
           quantity: item.quantity,
         });
         await queryRunner.manager.save(detail);
 
-        await queryRunner.manager.increment(
+        await queryRunner.manager.decrement(
           Product,
-          { id: item.productId },
+          { id: item.product_id },
           'quantity',
           item.quantity,
         );
       }
 
       await queryRunner.commitTransaction();
-      return savedEntry;
+      return savedDelivery;
     } catch (err) {
       await queryRunner.rollbackTransaction();
-      throw new InternalServerErrorException('Error procesando la entrada: ' + err);
+      throw err;
     } finally {
       await queryRunner.release();
     }
@@ -69,69 +70,69 @@ export class EntriesService {
 
   findAll() {
     try {
-      return this.entryRepository.find({
-        relations: { provider: true, details: { product: { item: true } } },
+      return this.deliveriesRepository.find({
+        relations: { client: true, details: { product: { item: true } } },
         order: { createdAt: 'DESC' },
       });
     } catch (error: unknown) {
-      return handleDbError(error, 'fetch entries');
+      return handleDbError(error, 'fetch deliveries');
     }
   }
 
   async findOne(id: number) {
-    let entry: Entry | null;
+    let delivery: Delivery | null;
     try {
-      entry = await this.entryRepository
-        .createQueryBuilder('entries')
-        .leftJoinAndSelect('entries.provider', 'provider')
-        .leftJoinAndSelect('entries.details', 'entries_products')
-        .leftJoinAndSelect('entries_products.product', 'products')
+      delivery = await this.deliveriesRepository
+        .createQueryBuilder('deliveries')
+        .leftJoinAndSelect('deliveries.client', 'clients')
+        .leftJoinAndSelect('deliveries.details', 'deliveries_products')
+        .leftJoinAndSelect('deliveries_products.product', 'products')
         .leftJoinAndSelect('products.item', 'item')
-        .where('entries.id = :id', { id })
+        .where('deliveries.id = :id', { id })
         .getOne();
     } catch (error: unknown) {
-      return handleDbError(error, `fetch entry with id ${id}`);
+      return handleDbError(error, `fetch delivery with id ${id}`);
     }
 
-    if (!entry) {
-      throw new NotFoundException(`Entry with id ${id} not found`);
+    if (!delivery) {
+      throw new NotFoundException(`Delivery with id ${id} not found`);
     }
 
-    return entry;
+    return delivery;
   }
 
-  async filter(filterQueryEntryDto: FilterQueryEntryDto) {
-    const { dateStart, dateEnd, providerId, limit = 10, offset = 0 } = filterQueryEntryDto;
+  async filter(filterQueryEntryDto: FilterQueryDeliveryDto) {
+    const { dateStart, dateEnd, clientId, limit = 10, offset = 0 } = filterQueryEntryDto;
 
-    const queryBuilder = this.entryRepository.createQueryBuilder('entries');
+    const queryBuilder = this.deliveriesRepository.createQueryBuilder('deliveries');
 
     queryBuilder
-      .leftJoinAndSelect('entries.provider', 'providers')
-      .leftJoinAndSelect('entries.details', 'entries_products')
-      .leftJoinAndSelect('entries_products.product', 'products')
+      .leftJoinAndSelect('deliveries.client', 'clients')
+      .leftJoinAndSelect('deliveries.details', 'deliveries_products')
+      .leftJoinAndSelect('deliveries_products.product', 'products')
       .leftJoinAndSelect('products.item', 'item');
 
     if (dateStart) {
-      queryBuilder.andWhere('entries.createdAt >= :dateStart', { dateStart });
+      queryBuilder.andWhere('deliveries.createdAt >= :dateStart', { dateStart });
     }
     if (dateEnd) {
-      queryBuilder.andWhere('entries.createdAt <= :dateEnd', { dateEnd });
+      queryBuilder.andWhere('deliveries.createdAt <= :dateEnd', { dateEnd });
     }
-    if (providerId) {
-      queryBuilder.andWhere('entries.provider = :providerId', { providerId });
+    if (clientId) {
+      queryBuilder.andWhere('deliveries.client = :clientId', { clientId });
     }
 
-    let entries: Entry[];
+    let deliveries: Delivery[];
     let count: number;
 
     try {
-      [entries, count] = await queryBuilder
-        .orderBy('entries.createdAt', 'ASC')
+      [deliveries, count] = await queryBuilder
+        .orderBy('deliveries.createdAt', 'ASC')
         .skip(offset)
         .take(limit)
         .getManyAndCount();
     } catch (error: unknown) {
-      return handleDbError(error, 'fetch filtered entries');
+      return handleDbError(error, 'fetch filtered deliveries');
     }
 
     let newOffset = offset + limit;
@@ -140,8 +141,8 @@ export class EntriesService {
       newOffset = count;
     }
 
-    const result: PaginationResult<Entry> = {
-      data: entries,
+    const result: PaginationResult<Delivery> = {
+      data: deliveries,
       meta: {
         total: count,
         offset,
@@ -153,19 +154,19 @@ export class EntriesService {
     return result;
   }
 
-  async updateHeader(id: number, updateEntryDto: UpdateEntryDto, userId: number) {
-    const entry = await this.entryRepository.preload({
+  async updateHeader(id: number, updateDeliveryDto: UpdateDeliveryDto, userId: number) {
+    const delivery = await this.deliveriesRepository.preload({
       id: id,
-      ...updateEntryDto,
+      ...updateDeliveryDto,
       updatedBy: userId,
     });
 
-    if (!entry) throw new NotFoundException(`Entry #${id} not found`);
+    if (!delivery) throw new NotFoundException(`Delivery #${id} not found`);
 
     try {
-      return await this.entryRepository.save(entry);
+      return await this.deliveriesRepository.save(delivery);
     } catch (error) {
-      handleDbError(error, 'update entry header');
+      handleDbError(error, 'update delivery header');
     }
   }
 
@@ -175,23 +176,15 @@ export class EntriesService {
     await queryRunner.startTransaction();
 
     try {
-      const entry = await queryRunner.manager.findOne(Entry, {
-        where: { id },
-        relations: {
-          details: {
-            product: true,
-          },
-        },
+      const delivery = await queryRunner.manager.findOne(Delivery, {
+        where: { id: id },
+        relations: { details: { product: true } },
       });
 
-      if (!entry) throw new NotFoundException(`Entry with id ${id} not found`);
+      if (!delivery) throw new NotFoundException(`Delivery #${id} not found`);
 
-      for (const detail of entry.details) {
-        await this.checkStockAvailability(queryRunner.manager, detail.product.id, detail.quantity);
-      }
-
-      for (const detail of entry.details) {
-        await queryRunner.manager.decrement(
+      for (const detail of delivery.details) {
+        await queryRunner.manager.increment(
           Product,
           { id: detail.product.id },
           'quantity',
@@ -199,7 +192,7 @@ export class EntriesService {
         );
       }
 
-      await queryRunner.manager.remove(Entry, entry);
+      await queryRunner.manager.remove(delivery);
 
       await queryRunner.commitTransaction();
       return { deleted: true, id };
@@ -210,7 +203,7 @@ export class EntriesService {
         throw err;
       }
 
-      throw new InternalServerErrorException('Error deleting entry: ' + err);
+      throw new InternalServerErrorException('Error deleting delivery: ' + err);
     } finally {
       await queryRunner.release();
     }
@@ -220,27 +213,31 @@ export class EntriesService {
     Details actions
   */
 
-  async addDetail(entryId: number, productId: number, quantity: number) {
+  async addDetail(detailId: number, productId: number, quantity: number) {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
-      const entry = await queryRunner.manager.findOne(Entry, { where: { id: entryId } });
-      if (!entry) throw new NotFoundException(`Entry #${entryId} not found`);
+      const delivery = await queryRunner.manager.findOne(Delivery, {
+        where: { id: detailId },
+      });
+      if (!delivery) throw new NotFoundException(`Delivery #${detailId} not found`);
 
-      const newDetail = queryRunner.manager.create(EntryProduct, {
-        entry: { id: entryId },
+      await this.checkStockAvailability(queryRunner.manager, productId, quantity);
+
+      const newDetail = queryRunner.manager.create(DeliveryProduct, {
+        delivery: { id: detailId },
         product: { id: productId },
         quantity: quantity,
       });
       const savedDetail = await queryRunner.manager.save(newDetail);
 
-      await queryRunner.manager.increment(Product, { id: productId }, 'quantity', quantity);
+      await queryRunner.manager.decrement(Product, { id: productId }, 'quantity', quantity);
 
       await queryRunner.commitTransaction();
 
-      return await this.entryProductRepository.findOne({
+      return await this.deliveryProductRepository.findOne({
         where: { id: savedDetail.id },
         relations: { product: true },
       });
@@ -258,7 +255,7 @@ export class EntriesService {
     await queryRunner.startTransaction();
 
     try {
-      const detail = await queryRunner.manager.findOne(EntryProduct, {
+      const detail = await queryRunner.manager.findOne(DeliveryProduct, {
         where: { id: detailId },
         relations: { product: true },
       });
@@ -270,22 +267,23 @@ export class EntriesService {
       await queryRunner.manager.save(detail);
 
       if (delta > 0) {
-        await queryRunner.manager.increment(Product, { id: detail.product.id }, 'quantity', delta);
-      } else if (delta < 0) {
-        const amountToSubtract = Math.abs(delta);
-        await this.checkStockAvailability(queryRunner.manager, detail.product.id, amountToSubtract);
+        await this.checkStockAvailability(queryRunner.manager, detail.product.id, delta);
 
-        await queryRunner.manager.decrement(
+        await queryRunner.manager.decrement(Product, { id: detail.product.id }, 'quantity', delta);
+      } else if (delta < 0) {
+        const amountToAdd = Math.abs(delta);
+
+        await queryRunner.manager.increment(
           Product,
           { id: detail.product.id },
           'quantity',
-          amountToSubtract,
+          amountToAdd,
         );
       }
 
       await queryRunner.commitTransaction();
 
-      return await this.entryProductRepository.findOne({
+      return await this.deliveryProductRepository.findOne({
         where: { id: detailId },
         relations: { product: true },
       });
@@ -296,7 +294,7 @@ export class EntriesService {
         throw err;
       }
 
-      throw new InternalServerErrorException(err);
+      throw new InternalServerErrorException('Error updating detail: ' + err);
     } finally {
       await queryRunner.release();
     }
@@ -308,16 +306,14 @@ export class EntriesService {
     await queryRunner.startTransaction();
 
     try {
-      const detail = await queryRunner.manager.findOne(EntryProduct, {
+      const detail = await queryRunner.manager.findOne(DeliveryProduct, {
         where: { id: detailId },
         relations: { product: true },
       });
 
       if (!detail) throw new NotFoundException('Detail not found');
 
-      await this.checkStockAvailability(queryRunner.manager, detail.product.id, detail.quantity);
-
-      await queryRunner.manager.decrement(
+      await queryRunner.manager.increment(
         Product,
         { id: detail.product.id },
         'quantity',
@@ -335,7 +331,7 @@ export class EntriesService {
         throw err;
       }
 
-      throw new InternalServerErrorException(err);
+      throw new InternalServerErrorException('Error removing detail: ' + err);
     } finally {
       await queryRunner.release();
     }
