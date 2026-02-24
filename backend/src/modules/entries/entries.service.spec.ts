@@ -5,13 +5,14 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Entry } from './entities/entry.entity';
 import { EntryProduct } from './entities/entryProduct.entity';
 import { Product } from '../products/entities/product.entity';
-import { DataSource } from 'typeorm';
+import { DataSource, SelectQueryBuilder } from 'typeorm';
 import {
   NotFoundException,
   BadRequestException,
   InternalServerErrorException,
 } from '@nestjs/common';
 import { CreateEntryDto } from './dto/create-entry.dto';
+import { FilterQueryEntryDto } from './dto/filter-query-entry.dto';
 
 describe('EntriesService', () => {
   let service: EntriesService;
@@ -117,13 +118,96 @@ describe('EntriesService', () => {
       const result = await service.findOne(1);
 
       expect(result).toEqual(entry);
-      expect(mockEntryRepository.createQueryBuilder).toHaveBeenCalledWith('entry');
+      expect(mockEntryRepository.createQueryBuilder).toHaveBeenCalledWith('entries');
     });
 
     it('must throw NotFoundException if entry does not exist', async () => {
       mockQueryResult = null;
 
       await expect(service.findOne(1)).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('filter', () => {
+    const leftJoinAndSelectSpy = jest.fn().mockReturnThis();
+    const andWhereSpy = jest.fn().mockReturnThis();
+    const orderBySpy = jest.fn().mockReturnThis();
+    const skipSpy = jest.fn().mockReturnThis();
+    const takeSpy = jest.fn().mockReturnThis();
+    const getManyAndCountSpy = jest.fn();
+
+    const queryBuilderMock = {
+      leftJoinAndSelect: leftJoinAndSelectSpy,
+      where: jest.fn().mockReturnThis(),
+      andWhere: andWhereSpy,
+      orderBy: orderBySpy,
+      skip: skipSpy,
+      take: takeSpy,
+      getOne: jest.fn(),
+      getManyAndCount: getManyAndCountSpy,
+    } as unknown as SelectQueryBuilder<Entry>;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockEntryRepository.createQueryBuilder.mockReturnValue(queryBuilderMock);
+    });
+
+    it('must return filtered and paginated entries', async () => {
+      const filterDto: FilterQueryEntryDto = {
+        dateStart: '2024-01-01 12:00:00',
+        dateEnd: '2024-12-31 12:00:00',
+        providerId: 1,
+        limit: 5,
+        offset: 0,
+      };
+
+      const mockEntries = [{ id: 1 }, { id: 2 }];
+      const mockTotal = 15;
+
+      mockEntryRepository.createQueryBuilder.mockReturnValue(queryBuilderMock);
+
+      getManyAndCountSpy.mockResolvedValue([mockEntries, mockTotal]);
+
+      const result = await service.filter(filterDto);
+
+      expect(result.data).toEqual(mockEntries);
+      expect(result.meta.total).toBe(mockTotal);
+      expect(result.meta.limit).toBe(5);
+      expect(result.meta.offset).toBe(0);
+      expect(result.meta.nextOffset).toBe(5);
+
+      expect(leftJoinAndSelectSpy).toHaveBeenCalledTimes(4);
+      expect(andWhereSpy).toHaveBeenCalledTimes(3);
+      expect(getManyAndCountSpy).toHaveBeenCalled();
+    });
+
+    it('must return null for nextOffset if there are no more entries', async () => {
+      const filterDto: FilterQueryEntryDto = { limit: 10, offset: 10 };
+      const mockEntries = [{ id: 11 }];
+      const mockTotal = 11;
+
+      const queryBuilderMock = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([mockEntries, mockTotal]),
+      } as unknown as SelectQueryBuilder<Entry>;
+
+      mockEntryRepository.createQueryBuilder.mockReturnValue(queryBuilderMock);
+
+      const result = await service.filter(filterDto as unknown as FilterQueryEntryDto);
+
+      expect(result.meta.nextOffset).toBeNull();
+    });
+
+    it('must throw InternalServerErrorException on DB error', async () => {
+      getManyAndCountSpy.mockRejectedValue(new Error('DB Error'));
+
+      await expect(service.filter({} as unknown as FilterQueryEntryDto)).rejects.toThrow(
+        InternalServerErrorException,
+      );
     });
   });
 

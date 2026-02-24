@@ -4,10 +4,11 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Delivery } from './entities/delivery.entity';
 import { DeliveryProduct } from './entities/deliveryProduct.entity';
 import { Product } from '../products/entities/product.entity';
-import { DataSource } from 'typeorm';
-import { NotFoundException } from '@nestjs/common';
+import { DataSource, SelectQueryBuilder } from 'typeorm';
+import { InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateDeliveryDto } from './dto/create-delivery.dto';
 import { UpdateDeliveryDto } from './dto/update-delivery.dto';
+import { FilterQueryDeliveryDto } from './dto/filter-query-delivery.dto';
 
 describe('DeliveriesService', () => {
   let service: DeliveriesService;
@@ -104,6 +105,100 @@ describe('DeliveriesService', () => {
       const qb = mockDeliveryRepository.createQueryBuilder();
       qb.getOne.mockResolvedValue(null);
       await expect(service.findOne(99)).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  interface MockQueryBuilder {
+    leftJoinAndSelect: jest.Mock;
+    andWhere: jest.Mock;
+    orderBy: jest.Mock;
+    skip: jest.Mock;
+    take: jest.Mock;
+    getManyAndCount: jest.Mock;
+    where: jest.Mock;
+    getOne: jest.Mock;
+  }
+
+  describe('filter', () => {
+    const leftJoinAndSelectSpy = jest.fn().mockReturnThis();
+    const andWhereSpy = jest.fn().mockReturnThis();
+    const orderBySpy = jest.fn().mockReturnThis();
+    const skipSpy = jest.fn().mockReturnThis();
+    const takeSpy = jest.fn().mockReturnThis();
+    const getManyAndCountSpy = jest.fn();
+
+    const queryBuilderMock = {
+      leftJoinAndSelect: leftJoinAndSelectSpy,
+      where: jest.fn().mockReturnThis(),
+      andWhere: andWhereSpy,
+      orderBy: orderBySpy,
+      skip: skipSpy,
+      take: takeSpy,
+      getOne: jest.fn(),
+      getManyAndCount: getManyAndCountSpy,
+    } as unknown as SelectQueryBuilder<Delivery> & MockQueryBuilder;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockDeliveryRepository.createQueryBuilder.mockReturnValue(queryBuilderMock);
+    });
+
+    it('must return filtered and paginated deliveries', async () => {
+      const filterDto: FilterQueryDeliveryDto = {
+        dateStart: '2024-01-01 12:00:00',
+        dateEnd: '2024-12-31 12:00:00',
+        clientId: 1,
+        limit: 5,
+        offset: 0,
+      };
+
+      const mockDeliveries = [{ id: 1 }, { id: 2 }];
+      const mockTotal = 15;
+
+      mockDeliveryRepository.createQueryBuilder.mockReturnValue(queryBuilderMock);
+
+      getManyAndCountSpy.mockResolvedValue([mockDeliveries, mockTotal]);
+
+      const result = await service.filter(filterDto);
+
+      expect(result.data).toEqual(mockDeliveries);
+      expect(result.meta.total).toBe(mockTotal);
+      expect(result.meta.limit).toBe(5);
+      expect(result.meta.offset).toBe(0);
+      expect(result.meta.nextOffset).toBe(5);
+
+      expect(leftJoinAndSelectSpy).toHaveBeenCalledTimes(4);
+      expect(andWhereSpy).toHaveBeenCalledTimes(3);
+      expect(getManyAndCountSpy).toHaveBeenCalled();
+    });
+
+    it('must return null nextOffset when there are no more deliveries', async () => {
+      const filterDto: FilterQueryDeliveryDto = { limit: 10, offset: 10 };
+      const mockDeliveries = [{ id: 11 }];
+      const mockTotal = 11;
+
+      const queryBuilderMock = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([mockDeliveries, mockTotal]),
+      } as unknown as SelectQueryBuilder<Delivery> & MockQueryBuilder;
+
+      mockDeliveryRepository.createQueryBuilder.mockReturnValue(queryBuilderMock);
+
+      const result = await service.filter(filterDto as unknown as FilterQueryDeliveryDto);
+
+      expect(result.meta.nextOffset).toBeNull();
+    });
+
+    it('must throw InternalServerErrorException on DB error', async () => {
+      getManyAndCountSpy.mockRejectedValue(new Error('DB Error'));
+
+      await expect(service.filter({} as unknown as FilterQueryDeliveryDto)).rejects.toThrow(
+        InternalServerErrorException,
+      );
     });
   });
 
