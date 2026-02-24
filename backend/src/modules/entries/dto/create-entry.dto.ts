@@ -25,5 +25,6 @@ export class CreateEntryDto {
   date: Date;
 
   @IsInt()
+  @Type(() => Number)
   providerId: number;
 }

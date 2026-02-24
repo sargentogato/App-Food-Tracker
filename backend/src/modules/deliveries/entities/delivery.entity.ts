@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   OneToMany,
   Entity,
+  JoinColumn,
 } from 'typeorm';
 import { DeliveryProduct } from './deliveryProduct.entity';
 import { Client } from 'src/modules/clients/entities/client.entity';
@@ -21,7 +22,11 @@ export class Delivery {
   date: Date;
 
   @ManyToOne(() => Client, (client) => client.deliveries)
+  @JoinColumn({ name: 'clientId' })
   client: Client;
+
+  @Column({ nullable: false })
+  clientId: number;
 
   @CreateDateColumn()
   createdAt: Date;

@@ -5,6 +5,7 @@ import {
   OneToMany,
   Column,
   ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { EntryProduct } from './entryProduct.entity';
 import { Provider } from 'src/modules/providers/entities/provider.entity';
@@ -21,7 +22,11 @@ export class Entry {
   date: Date;
 
   @ManyToOne(() => Provider, (provider) => provider.entries)
+  @JoinColumn({ name: 'providerId' })
   provider: Provider;
+
+  @Column({ nullable: false })
+  providerId: number;
 
   @CreateDateColumn()
   createdAt: Date;

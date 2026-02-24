@@ -84,7 +84,7 @@ export class DeliveriesService {
     try {
       delivery = await this.deliveriesRepository
         .createQueryBuilder('deliveries')
-        .leftJoinAndSelect('deliveries.client', 'client')
+        .leftJoinAndSelect('deliveries.client', 'clients')
         .leftJoinAndSelect('deliveries.details', 'deliveries_products')
         .leftJoinAndSelect('deliveries_products.product', 'products')
         .leftJoinAndSelect('products.item', 'item')
@@ -107,7 +107,7 @@ export class DeliveriesService {
     const queryBuilder = this.deliveriesRepository.createQueryBuilder('deliveries');
 
     queryBuilder
-      .leftJoinAndSelect('deliveries.client', 'client')
+      .leftJoinAndSelect('deliveries.client', 'clients')
       .leftJoinAndSelect('deliveries.details', 'deliveries_products')
       .leftJoinAndSelect('deliveries_products.product', 'products')
       .leftJoinAndSelect('products.item', 'item');

@@ -25,5 +25,6 @@ export class CreateDeliveryDto {
   date: Date;
 
   @IsInt()
+  @Type(() => Number)
   clientId: number;
 }
