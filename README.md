@@ -72,3 +72,11 @@ The project follows a Modular Architecture, separating logic by domains (Items, 
 🚧 Under construction
 
 ------------------------------------------------
+
+## Team
+
+- [**Marlon**](https://github.com/sargentogato)
+- [**J Ramón Carralero**](https://github.com/JRamonCarralero)
+- [**Manuel Tomasino**](https://github.com/ShadeVI)
+- [**Marta Vilaseca**](https://github.com/marta-vilaseca)
+- [**Raúl Gambalonga**](https://github.com/RaulGamBalonga)
