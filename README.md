@@ -1,56 +1,82 @@
-## ✅ App Food Track
+# APP FOOD-TRACKER
 
-![monorepo](https://img.shields.io/badge/structure-monorepo-blue)  
-![status](https://img.shields.io/badge/status-in%20progress-yellow)
+This app was built with the hope of helping the 'Amigos de la Calle' association manage their product inventory as they carry out their vital work supporting those most in need.
 
----
+------------------------------------------------
 
-## 🛠️ Tecnologías principales
+## 🚀 Backend Guide
 
-![NestJS Badge](https://img.shields.io/badge/NestJS-E0234E?logo=nestjs&logoColor=fff&style=flat) ![TypeScript Badge](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=fff&style=flat) ![MySQL Badge](https://img.shields.io/badge/MySQL-4479A1?logo=mysql&logoColor=fff&style=flat) ![Jest Badge](https://img.shields.io/badge/Jest-C21325?logo=jest&logoColor=fff&style=flat) ![ESLint Badge](https://img.shields.io/badge/ESLint-4B32C3?logo=eslint&logoColor=fff&style=flat) ![Prettier Badge](https://img.shields.io/badge/Prettier-F7B93E?logo=prettier&logoColor=fff&style=flat) ![React Badge](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=000&style=flat) ![Vite Badge](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=fff&style=flat) ![Vitest Badge](https://img.shields.io/badge/Vitest-6E9F18?logo=vitest&logoColor=fff&style=flat) ![Cypress Badge](https://img.shields.io/badge/Cypress-69D3A7?logo=cypress&logoColor=fff&style=flat)
+Follow these steps to set up the backend:
 
----
+### Pre-requisites
 
-## 👥 Equipo
+- **Node.js** version 18 or higher
+- **MySQL**
+- **npm** or **pnpm** for package management
 
-- José Ramón Carralero [@JRamonCarralero](https://github.com/JRamonCarralero)
-- Raúl Gambalonga [@RaulGamBalonga](https://github.com/RaulGamBalonga)
-- Manuel Tomasino [@ShadeVI](https://github.com/ShadeVI)
-- Marlon Velásquez [@sargentogato](https://github.com/sargentogato)
-- Marta Vilaseca [@marta-vilaseca](https://github.com/marta-vilaseca)
+### Installation
 
----
+Clone the repository and navigate to the backend folder:
 
-## 📂 Estructura del repositorio
-
-```
-/frontend → aplicación cliente
-/backend → API y lógica de negocio
+```bash
+git clone [https://github.com/sargentogato/App-Food-Tracker.git](https://github.com/sargentogato/App-Food-Tracker.git)
+cd App-Food-Tracker/backend
+npm install
 ```
 
----
+### Environment Variables
 
-## 🎨 Frontend
+Create a `.env` file in the backend root directory and use `.env.example` as a template.
 
-_Estado actual: pendiente de desarrollo._
+```bash
+cp .env.example .env
+```
 
----
+💡 Open `.env` file and configure credentials with your own data.
 
-## ⚙️ Backend
+### Execute
 
-_Estado actual: en desarrollo inicial._
+```bash
+npm run start:dev
+```
 
----
+The API will be available at `http://localhost:5000/api/v1`
 
-## 🗺️ Roadmap
+### Testing
 
-- [x] Definir arquitectura
-- [x] Configurar entorno de desarrollo
-- [x] Implementar base del backend
-- [ ] Iniciar desarrollo del frontend
+To execute unit tests, run:
 
----
+```bash
+npm run test
+```
 
-## 🚀 Uso
+### 🛠️ Stack
 
-Pronto añadiremos instrucciones para instalar y ejecutar el proyecto.
+- Framework: [NestJS](https://nestjs.com/)
+- ORM: [TypeORM](https://typeorm.io/)
+- Database: [MySQL](https://www.mysql.com/)
+- Documentation: [Swagger](https://swagger.io/)
+- Testing: [Jest](https://jestjs.io/)
+- Authentication: [Passport](https://docs.nestjs.com/recipes/passport) [JWT](https://jwt.io/)
+- Validation: [class-validator](https://github.com/typestack/class-validator)
+- Encryption: [bcrypt](https://www.npmjs.com/package/bcrypt)
+
+### 🏗️ Project Architecture
+
+The project follows a Modular Architecture, separating logic by domains (Items, Products, Users, Providers...). Each module encapsulates its own controllers, services, and entities, ensuring maintainable code that is easy to scale.
+
+------------------------------------------------
+
+## 🚀 Frontend Guide
+
+🚧 Under construction
+
+------------------------------------------------
+
+## Team
+
+- [**Marlon**](https://github.com/sargentogato)
+- [**J Ramón Carralero**](https://github.com/JRamonCarralero)
+- [**Manuel Tomasino**](https://github.com/ShadeVI)
+- [**Marta Vilaseca**](https://github.com/marta-vilaseca)
+- [**Raúl Gambalonga**](https://github.com/RaulGamBalonga)
